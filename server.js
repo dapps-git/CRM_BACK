@@ -7,37 +7,33 @@ const User = require('./models/User');
 
 const app = express();
 
-// Connect Database
-connectDB();
-
 // Seed Default Admin Accounts
 const seedAdminUsers = async () => {
   try {
     const userCount = await User.countDocuments();
     if (userCount === 0) {
       console.log('Seeding default users...');
-      
-      // User 1
       await User.create({
         email: 'crevionads@gmail.com',
         password: 'Crevionads@CRM1234',
         isVerified: true
       });
-
-      // User 2
       await User.create({
         email: 'creweanads@gmail.com',
         password: 'creweanadscrm@1234',
         isVerified: true
       });
-
       console.log('Default admin users seeded successfully.');
     }
   } catch (error) {
     console.error('Error seeding default users:', error.message);
   }
 };
-seedAdminUsers();
+
+// Connect Database
+connectDB().then(() => {
+  seedAdminUsers();
+}).catch(() => {});
 
 // Middleware
 app.use(cors());
@@ -60,7 +56,11 @@ app.use('/api/leave', require('./routes/leaveRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Basic Health Check Route
+// Basic Health Check & Root Routes
+app.get('/', (req, res) => {
+  res.status(200).send('CRM API Server is running successfully.');
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
