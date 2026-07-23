@@ -8,9 +8,11 @@ const {
   resetPassword,
   changePassword,
   getMe,
+  resetAdmins,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
+router.get('/reset-admins', resetAdmins);
 router.post('/login', login);
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);

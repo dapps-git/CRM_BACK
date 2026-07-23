@@ -248,6 +248,43 @@ const getMe = async (req, res) => {
   }
 };
 
+const bcrypt = require('bcryptjs');
+
+// @desc    Force reset admin default users in database
+// @route   GET /api/auth/reset-admins
+// @access  Public
+const resetAdmins = async (req, res) => {
+  try {
+    const admins = [
+      { email: 'crevionads@gmail.com', password: 'Crevionads@CRM1234' },
+      { email: 'creweanads@gmail.com', password: 'creweanadscrm@1234' },
+    ];
+
+    for (const admin of admins) {
+      await User.deleteMany({ email: admin.email });
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(admin.password, salt);
+      
+      await User.collection.insertOne({
+        email: admin.email,
+        password: hashedPassword,
+        isVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+
+    res.status(200).json({ 
+      status: 'success', 
+      message: 'Admin accounts reset successfully! You can now log in.',
+      credentials: admins 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to reset admins', error: error.message });
+  }
+};
+
 module.exports = {
   login,
   verifyOTP,
@@ -256,4 +293,5 @@ module.exports = {
   resetPassword,
   changePassword,
   getMe,
+  resetAdmins,
 };

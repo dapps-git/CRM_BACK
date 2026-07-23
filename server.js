@@ -7,6 +7,8 @@ const User = require('./models/User');
 
 const app = express();
 
+const bcrypt = require('bcryptjs');
+
 // Seed Default Admin Accounts
 const seedAdminUsers = async () => {
   try {
@@ -16,15 +18,18 @@ const seedAdminUsers = async () => {
     ];
 
     for (const admin of admins) {
-      let user = await User.findOne({ email: admin.email });
-      if (!user) {
-        await User.create({ email: admin.email, password: admin.password, isVerified: true });
-        console.log(`Seeded admin user: ${admin.email}`);
-      } else {
-        user.password = admin.password;
-        await user.save();
-        console.log(`Updated admin user password: ${admin.email}`);
-      }
+      await User.deleteMany({ email: admin.email });
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(admin.password, salt);
+      
+      await User.collection.insertOne({
+        email: admin.email,
+        password: hashedPassword,
+        isVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      console.log(`✅ Admin user seeded & verified: ${admin.email}`);
     }
   } catch (error) {
     console.error('Error seeding default users:', error.message);
