@@ -41,6 +41,24 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
+// Request Logger
+app.use((req, res, next) => {
+  console.log(`Incoming: ${req.method} ${req.url} (original: ${req.originalUrl})`);
+  next();
+});
+
+// Subpath Normalizer Middleware (Strips cPanel /crm folder prefix)
+app.use((req, res, next) => {
+  if (req.url.includes('/api/')) {
+    req.url = '/api/' + req.url.split('/api/')[1];
+  } else if (req.url.startsWith('/crm/')) {
+    req.url = req.url.replace(/^\/crm/, '') || '/';
+  } else if (req.url === '/crm') {
+    req.url = '/';
+  }
+  next();
+});
+
 // Explicit Permissive CORS for Vercel Frontend & Cross-Origin Requests
 app.use(cors({
   origin: '*',
@@ -53,33 +71,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static Folder for Local Uploads Fallback
-app.use(['/crm/uploads', '/uploads'], express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Direct Reset Admins Route (Guarantees browser access regardless of proxy)
-app.get([
-  '/crm/api/auth/reset-admins',
-  '/api/auth/reset-admins',
-  '/auth/reset-admins',
-  '/reset-admins'
-], require('./controllers/authController').resetAdmins);
-
-// Mount Routes (Supports /crm/api, /crm, /api, and root prefixes)
-app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], require('./routes/authRoutes'));
-app.use(['/crm/api/business', '/crm/business', '/api/business', '/business'], require('./routes/businessRoutes'));
-app.use(['/crm/api/income', '/crm/income', '/api/income', '/income'], require('./routes/incomeRoutes'));
-app.use(['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'], require('./routes/expenseRoutes'));
-app.use(['/crm/api/member', '/crm/member', '/api/member', '/member'], require('./routes/memberRoutes'));
-app.use(['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'], require('./routes/leaveRoutes'));
-app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], require('./routes/settingsRoutes'));
-app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], require('./routes/dashboardRoutes'));
+// Mount Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/business', require('./routes/businessRoutes'));
+app.use('/api/income', require('./routes/incomeRoutes'));
+app.use('/api/expense', require('./routes/expenseRoutes'));
+app.use('/api/member', require('./routes/memberRoutes'));
+app.use('/api/leave', require('./routes/leaveRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 // Basic Health Check & Root Routes
-app.all('*', (req, res, next) => {
-  const cleanPath = (req.path || '').toLowerCase().replace(/\/+$/, '');
-  if (cleanPath === '' || cleanPath === '/' || cleanPath.endsWith('/health') || cleanPath.endsWith('/crm') || cleanPath.endsWith('/api')) {
-    return res.status(200).send('CRM API Server is running successfully.');
-  }
-  next();
+app.get(['/', '/health', '/api/health'], (req, res) => {
+  res.status(200).send('CRM API Server is running successfully.');
 });
 
 // Port configuration
