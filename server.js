@@ -32,6 +32,14 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
+// cPanel Subpath Normalizer Middleware (Strips /crm prefix if cPanel passes full URL)
+app.use((req, res, next) => {
+  if (req.url.startsWith('/crm')) {
+    req.url = req.url.replace(/^\/crm/, '') || '/';
+  }
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
