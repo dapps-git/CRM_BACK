@@ -32,9 +32,9 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// cPanel Subpath Normalizer Middleware (Strips /crm prefix if cPanel passes full URL)
+// cPanel & Local Subpath Normalizer Middleware
 app.use((req, res, next) => {
-  if (req.url.startsWith('/crm')) {
+  if (req.url.startsWith('/crm/')) {
     req.url = req.url.replace(/^\/crm/, '') || '/';
   }
   next();
@@ -46,28 +46,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static Folder for Local Uploads Fallback
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use(['/crm/uploads', '/uploads'], express.static(path.join(__dirname, 'public/uploads')));
 
-// Serve Frontend in Production (Optional, since we run frontend and backend on separate dev servers usually)
-// For local convenience, let's keep backend and frontend modular.
-
-// Mount Routes (Supports both with and without /api prefix for cPanel subpath compatibility)
-app.use(['/api/auth', '/auth'], require('./routes/authRoutes'));
-app.use(['/api/business', '/business'], require('./routes/businessRoutes'));
-app.use(['/api/income', '/income'], require('./routes/incomeRoutes'));
-app.use(['/api/expense', '/expense'], require('./routes/expenseRoutes'));
-app.use(['/api/member', '/member'], require('./routes/memberRoutes'));
-app.use(['/api/leave', '/leave'], require('./routes/leaveRoutes'));
-app.use(['/api/settings', '/settings'], require('./routes/settingsRoutes'));
-app.use(['/api/dashboard', '/dashboard'], require('./routes/dashboardRoutes'));
+// Mount Routes (Supports /crm/api, /crm, /api, and root paths)
+app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], require('./routes/authRoutes'));
+app.use(['/crm/api/business', '/crm/business', '/api/business', '/business'], require('./routes/businessRoutes'));
+app.use(['/crm/api/income', '/crm/income', '/api/income', '/income'], require('./routes/incomeRoutes'));
+app.use(['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'], require('./routes/expenseRoutes'));
+app.use(['/crm/api/member', '/crm/member', '/api/member', '/member'], require('./routes/memberRoutes'));
+app.use(['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'], require('./routes/leaveRoutes'));
+app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], require('./routes/settingsRoutes'));
+app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], require('./routes/dashboardRoutes'));
 
 // Basic Health Check & Root Routes
-app.get('/', (req, res) => {
+app.get(['/', '/crm', '/api/health', '/crm/api/health'], (req, res) => {
   res.status(200).send('CRM API Server is running successfully.');
-});
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
 
 // Port configuration
