@@ -1,0 +1,4 @@
+# DO NOT REMOVE OR MODIFY. PASSENGER CONFIGURATION
+SetEnv NODE_ENV production
+PassengerAppType node
+PassengerStartupFile server.js
