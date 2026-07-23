@@ -75,7 +75,8 @@ app.use(['*/dashboard', '*/api/dashboard'], require('./routes/dashboardRoutes'))
 
 // Basic Health Check & Root Routes
 app.all('*', (req, res, next) => {
-  if (req.path === '/' || req.path.endsWith('/health') || req.path.endsWith('/crm')) {
+  const cleanPath = (req.path || '').toLowerCase().replace(/\/+$/, '');
+  if (cleanPath === '' || cleanPath === '/' || cleanPath.endsWith('/health') || cleanPath.endsWith('/crm') || cleanPath.endsWith('/api')) {
     return res.status(200).send('CRM API Server is running successfully.');
   }
   next();
