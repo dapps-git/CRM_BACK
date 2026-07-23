@@ -28,8 +28,13 @@ const login = async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: cleanEmail });
 
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(401).json({ message: 'User account not found' });
+    }
+
+    const isMatch = await user.matchPassword(password.trim());
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Incorrect password' });
     }
 
     // Issue Token directly
@@ -261,16 +266,11 @@ const resetAdmins = async (req, res) => {
     ];
 
     for (const admin of admins) {
-      await User.deleteMany({ email: admin.email });
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(admin.password, salt);
-      
-      await User.collection.insertOne({
-        email: admin.email,
-        password: hashedPassword,
-        isVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+      await User.deleteMany({ email: admin.email.toLowerCase() });
+      await User.create({
+        email: admin.email.toLowerCase(),
+        password: admin.password,
+        isVerified: true
       });
     }
 

@@ -17,16 +17,11 @@ const seedAdminUsers = async () => {
     ];
 
     for (const admin of admins) {
-      await User.deleteMany({ email: admin.email });
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(admin.password, salt);
-      
-      await User.collection.insertOne({
-        email: admin.email,
-        password: hashedPassword,
-        isVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+      await User.deleteMany({ email: admin.email.toLowerCase() });
+      await User.create({
+        email: admin.email.toLowerCase(),
+        password: admin.password,
+        isVerified: true
       });
       console.log(`✅ Admin user seeded & verified: ${admin.email}`);
     }
