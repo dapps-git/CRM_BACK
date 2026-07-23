@@ -41,9 +41,11 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// cPanel & Local Subpath Normalizer Middleware
+// Universal Subpath Normalizer Middleware (Strips /crm or folder prefix before /api)
 app.use((req, res, next) => {
-  if (req.url.startsWith('/crm/')) {
+  if (req.url.includes('/api/')) {
+    req.url = '/api/' + req.url.split('/api/')[1];
+  } else if (req.url.startsWith('/crm')) {
     req.url = req.url.replace(/^\/crm/, '') || '/';
   }
   next();
@@ -63,15 +65,15 @@ app.use(express.urlencoded({ extended: true }));
 // Static Folder for Local Uploads Fallback
 app.use(['/crm/uploads', '/uploads'], express.static(path.join(__dirname, 'public/uploads')));
 
-// Mount Routes (Uses wildcard matching to support any cPanel subpath or prefix)
-app.use(['*/auth', '*/api/auth'], require('./routes/authRoutes'));
-app.use(['*/business', '*/api/business'], require('./routes/businessRoutes'));
-app.use(['*/income', '*/api/income'], require('./routes/incomeRoutes'));
-app.use(['*/expense', '*/api/expense'], require('./routes/expenseRoutes'));
-app.use(['*/member', '*/api/member'], require('./routes/memberRoutes'));
-app.use(['*/leave', '*/api/leave'], require('./routes/leaveRoutes'));
-app.use(['*/settings', '*/api/settings'], require('./routes/settingsRoutes'));
-app.use(['*/dashboard', '*/api/dashboard'], require('./routes/dashboardRoutes'));
+// Mount Routes (Supports /api/route and /route)
+app.use(['/api/auth', '/auth'], require('./routes/authRoutes'));
+app.use(['/api/business', '/business'], require('./routes/businessRoutes'));
+app.use(['/api/income', '/income'], require('./routes/incomeRoutes'));
+app.use(['/api/expense', '/expense'], require('./routes/expenseRoutes'));
+app.use(['/api/member', '/member'], require('./routes/memberRoutes'));
+app.use(['/api/leave', '/leave'], require('./routes/leaveRoutes'));
+app.use(['/api/settings', '/settings'], require('./routes/settingsRoutes'));
+app.use(['/api/dashboard', '/dashboard'], require('./routes/dashboardRoutes'));
 
 // Basic Health Check & Root Routes
 app.all('*', (req, res, next) => {
