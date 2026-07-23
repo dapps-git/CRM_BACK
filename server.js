@@ -16,10 +16,14 @@ const seedAdminUsers = async () => {
     ];
 
     for (const admin of admins) {
-      const existing = await User.findOne({ email: admin.email });
-      if (!existing) {
+      let user = await User.findOne({ email: admin.email });
+      if (!user) {
         await User.create({ email: admin.email, password: admin.password, isVerified: true });
         console.log(`Seeded admin user: ${admin.email}`);
+      } else {
+        user.password = admin.password;
+        await user.save();
+        console.log(`Updated admin user password: ${admin.email}`);
       }
     }
   } catch (error) {
