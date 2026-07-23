@@ -4,10 +4,9 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const User = require('./models/User');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-
-const bcrypt = require('bcryptjs');
 
 // Seed Default Admin Accounts
 const seedAdminUsers = async () => {
@@ -41,21 +40,33 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// Request Logger
-app.use((req, res, next) => {
-  console.log(`Incoming: ${req.method} ${req.url} (original: ${req.originalUrl})`);
-  next();
-});
+// Global Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Mount Routes (Explicitly supports /crm/api, /crm, /api, and root subpaths)
-app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], require('./routes/authRoutes'));
-app.use(['/crm/api/business', '/crm/business', '/api/business', '/business'], require('./routes/businessRoutes'));
-app.use(['/crm/api/income', '/crm/income', '/api/income', '/income'], require('./routes/incomeRoutes'));
-app.use(['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'], require('./routes/expenseRoutes'));
-app.use(['/crm/api/member', '/crm/member', '/api/member', '/member'], require('./routes/memberRoutes'));
-app.use(['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'], require('./routes/leaveRoutes'));
-app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], require('./routes/settingsRoutes'));
-app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], require('./routes/dashboardRoutes'));
+// Static Folder for Local Uploads
+['/crm/uploads', '/uploads'].forEach(p => app.use(p, express.static(path.join(__dirname, 'public/uploads'))));
+
+// Import Routers
+const authRoutes = require('./routes/authRoutes');
+const businessRoutes = require('./routes/businessRoutes');
+const incomeRoutes = require('./routes/incomeRoutes');
+const expenseRoutes = require('./routes/expenseRoutes');
+const memberRoutes = require('./routes/memberRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+
+// Mount Routers for all possible cPanel / local subpaths
+['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'].forEach(p => app.use(p, authRoutes));
+['/crm/api/business', '/crm/business', '/api/business', '/business'].forEach(p => app.use(p, businessRoutes));
+['/crm/api/income', '/crm/income', '/api/income', '/income'].forEach(p => app.use(p, incomeRoutes));
+['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'].forEach(p => app.use(p, expenseRoutes));
+['/crm/api/member', '/crm/member', '/api/member', '/member'].forEach(p => app.use(p, memberRoutes));
+['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'].forEach(p => app.use(p, leaveRoutes));
+['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'].forEach(p => app.use(p, settingsRoutes));
+['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'].forEach(p => app.use(p, dashboardRoutes));
 
 // Basic Health Check & Root Routes
 app.get(['/', '/crm', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
