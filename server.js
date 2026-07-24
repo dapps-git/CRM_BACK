@@ -8,8 +8,6 @@ const bcrypt = require('bcryptjs');
 
 const app = express();
 
-const app = express();
-
 // Seed Default Admin Accounts
 const seedAdminUsers = async () => {
   try {
@@ -80,7 +78,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 ['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'].forEach(p => app.use(p, dashboardRoutes));
 
 // Basic Health Check & Root Routes
-app.get(['/', '/crm', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
+app.get(['/', '/crm', '/crm/', '/api', '/api/', '/crm/api', '/crm/api/', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
   res.status(200).send('CRM API Server is running successfully.');
 });
 
