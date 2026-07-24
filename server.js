@@ -35,17 +35,21 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// Dynamic W3C Compliant CORS Middleware
-const corsOptions = {
-  origin: true, // Dynamically reflects requesting origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['x-auth-token', 'X-Auth-Token', 'Authorization', 'authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With', 'X-CSRF-Token', '*'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+// Universal CORS Middleware with preflight handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, authorization, x-auth-token, X-Auth-Token, *');
+  res.header('Access-Control-Allow-Credentials', 'true');
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+  if (req.method === 'OPTIONS') {
+    return res.status(200).send('OK');
+  }
+  next();
+});
+
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
