@@ -4,13 +4,35 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  if (authHeader && authHeader.startsWith('Bearer')) {
-    token = authHeader.split(' ')[1];
-  } else if (req.headers['x-auth-token']) {
-    token = req.headers['x-auth-token'];
-  } else if (req.query && req.query.token) {
+  // 1. Check req.query.token
+  if (req.query && req.query.token) {
     token = req.query.token;
+  }
+
+  // 2. Check URL searchParams directly from req.url (bulletproof for Passenger / cPanel)
+  if (!token && req.url) {
+    try {
+      const parsedUrl = new URL(req.url, 'http://localhost');
+      token = parsedUrl.searchParams.get('token');
+    } catch (e) {}
+  }
+
+  // 3. Check originalUrl searchParams (bulletproof for Express routers)
+  if (!token && req.originalUrl) {
+    try {
+      const parsedOriginal = new URL(req.originalUrl, 'http://localhost');
+      token = parsedOriginal.searchParams.get('token');
+    } catch (e) {}
+  }
+
+  // 4. Check headers fallback
+  if (!token) {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader && authHeader.startsWith('Bearer')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.headers['x-auth-token']) {
+      token = req.headers['x-auth-token'];
+    }
   }
 
   if (token) {
