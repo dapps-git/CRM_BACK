@@ -8,18 +8,7 @@ const bcrypt = require('bcryptjs');
 
 const app = express();
 
-// Auto-sync .htaccess to public_html/crm/.htaccess for LiteSpeed Web Server CORS preflights
-const fs = require('fs');
-try {
-  const srcHt = path.join(__dirname, '.htaccess');
-  const destHt = path.join(__dirname, '../../public_html/crm/.htaccess');
-  if (fs.existsSync(srcHt) && fs.existsSync(path.dirname(destHt))) {
-    fs.copyFileSync(srcHt, destHt);
-    console.log('✅ Auto-synced .htaccess to public_html/crm/.htaccess');
-  }
-} catch (err) {
-  // Silent fallback
-}
+const app = express();
 
 // Seed Default Admin Accounts
 const seedAdminUsers = async () => {
