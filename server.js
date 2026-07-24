@@ -35,8 +35,20 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// Global Middleware
-app.use(cors());
+// Global Middleware (Permissive CORS + Preflight OPTIONS Handling)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+}));
+
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With', 'Accept', 'Origin');
+  res.sendStatus(200);
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
