@@ -28,13 +28,18 @@ const sendEmail = async (options) => {
       return { simulated: true };
     }
 
-    // Create Transporter
+    // Create Robust Gmail Transporter
     const transporter = nodemailer.createTransport({
-      service: service || 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // SSL
       auth: {
-        user: user,
-        pass: pass,
+        user: user.trim(),
+        pass: pass.trim().replace(/\s+/g, ''), // Strip spaces from App Password
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const mailOptions = {
