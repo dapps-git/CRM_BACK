@@ -2,6 +2,8 @@
 PassengerAppType node
 PassengerStartupFile server.js
 PassengerBaseURI /crm
+PassengerNodejs /home/tweaxzow/nodevenv/repositories/CRM_BACK/22/bin/node
+PassengerAppRoot /home/tweaxzow/repositories/CRM_BACK
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
 # Allow All CORS Headers at LiteSpeed Web Server Level
