@@ -21,13 +21,13 @@ const storage = multer.diskStorage({
   }
 });
 
-// File Filter
+// File Filter (allows jpeg, jpg, png, gif, webp, svg, pdf)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|pdf/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExts = /jpeg|jpg|png|gif|webp|svg|pdf/;
+  const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
+  const isAllowedMime = file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf';
 
-  if (extname && mimetype) {
+  if (extname || isAllowedMime) {
     cb(null, true);
   } else {
     cb(new Error('Only images and PDFs are allowed!'), false);
@@ -37,7 +37,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
 // Helper function to handle upload to Cloudinary or fallback to local URL
@@ -71,6 +71,7 @@ const uploadToCloudinaryOrLocal = async (file) => {
       // Upload to Cloudinary
       const result = await cloudinary.uploader.upload(file.path, {
         folder: 'crevionads_crm',
+        resource_type: 'auto'
       });
 
       // Delete local temporary file
@@ -83,13 +84,11 @@ const uploadToCloudinaryOrLocal = async (file) => {
       return result.secure_url;
     }
 
-    // Fallback: Use local file URL with full backend origin so frontend can load it cross-port
-    const port = process.env.PORT || 5000;
-    return `http://localhost:${port}/uploads/${file.filename}`;
+    // Fallback: Use local file URL
+    return `https://tweaki.pw/crm/uploads/${file.filename}`;
   } catch (error) {
     console.error('Cloudinary upload failed, falling back to local storage:', error);
-    const port = process.env.PORT || 5000;
-    return `http://localhost:${port}/uploads/${file.filename}`;
+    return `https://tweaki.pw/crm/uploads/${file.filename}`;
   }
 };
 
