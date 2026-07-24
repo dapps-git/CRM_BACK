@@ -35,20 +35,17 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// Bulletproof Universal CORS Middleware
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'authorization, Authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token, *');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+// Dynamic W3C Compliant CORS Middleware (Reflects origin so browsers permit Authorization header)
+const corsOptions = {
+  origin: true, // Dynamically reflects requesting origin (required by W3C CORS spec when Authorization header is sent)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Authorization', 'authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With', 'X-CSRF-Token'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-
-app.use(cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
