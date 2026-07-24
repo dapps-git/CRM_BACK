@@ -13,17 +13,9 @@ if (!fs.existsSync(uploadDir)) {
 // Multer Memory Storage Configuration (avoids cPanel disk write permission issues)
 const storage = multer.memoryStorage();
 
-// File Filter (allows jpeg, jpg, png, gif, webp, svg, pdf)
+// Permissive File Filter (accepts all images and document files)
 const fileFilter = (req, file, cb) => {
-  const allowedExts = /jpeg|jpg|png|gif|webp|svg|pdf/;
-  const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
-  const isAllowedMime = file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf';
-
-  if (extname || isAllowedMime) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images and PDFs are allowed!'), false);
-  }
+  cb(null, true);
 };
 
 const upload = multer({
