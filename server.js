@@ -35,11 +35,11 @@ connectDB().then(() => {
   seedAdminUsers();
 }).catch(() => {});
 
-// Dynamic W3C Compliant CORS Middleware (Reflects origin so browsers permit Authorization header)
+// Dynamic W3C Compliant CORS Middleware
 const corsOptions = {
-  origin: true, // Dynamically reflects requesting origin (required by W3C CORS spec when Authorization header is sent)
+  origin: true, // Dynamically reflects requesting origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Authorization', 'authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With', 'X-CSRF-Token'],
+  allowedHeaders: ['x-auth-token', 'X-Auth-Token', 'Authorization', 'authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With', 'X-CSRF-Token', '*'],
   credentials: true,
   optionsSuccessStatus: 200
 };
