@@ -105,10 +105,17 @@ const updateBusiness = async (req, res) => {
       return res.status(404).json({ message: 'Business record not found' });
     }
 
-    const updated = await Business.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { businessName, agentName, role, contactNumber, location, requirement, description, date } = req.body;
+
+    const updated = await Business.findByIdAndUpdate(
+      req.params.id,
+      { businessName, agentName, role, contactNumber, location, requirement, description, date },
+      { new: true, runValidators: false }
+    );
     res.status(200).json(updated);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to update business' });
+    console.error('Update business error:', error);
+    res.status(400).json({ message: error.message || 'Failed to update business' });
   }
 };
 
@@ -160,7 +167,7 @@ const exportExcel = async (req, res) => {
         role: item.role,
         contactNumber: item.contactNumber,
         location: item.location,
-        requirement: item.requirement,
+        requirement: Array.isArray(item.requirement) ? item.requirement.join(', ') : (item.requirement || ''),
         description: item.description,
         date: new Date(item.date).toLocaleDateString()
       });
@@ -230,7 +237,8 @@ const exportPDF = async (req, res) => {
       doc.text(item.agentName.substring(0, 15), 150, y);
       doc.text(item.contactNumber.substring(0, 15), 240, y);
       doc.text(item.location.substring(0, 15), 340, y);
-      doc.text(item.requirement.substring(0, 20), 450, y);
+      const reqStr = Array.isArray(item.requirement) ? item.requirement.join(', ') : (item.requirement || '');
+      doc.text(reqStr.substring(0, 20), 450, y);
       y += rowHeight;
     });
 

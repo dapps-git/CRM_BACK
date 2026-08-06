@@ -27,7 +27,7 @@ const BusinessSchema = new mongoose.Schema({
     trim: true,
   },
   requirement: {
-    type: String,
+    type: [String],
     required: true,
     enum: [
       'Website Development',
