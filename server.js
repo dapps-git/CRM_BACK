@@ -69,15 +69,15 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 
 // Mount Routers for all possible cPanel / local subpaths
-['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'].forEach(p => app.use(p, authRoutes));
-['/crm/api/business', '/crm/business', '/api/business', '/business'].forEach(p => app.use(p, businessRoutes));
-['/crm/api/income', '/crm/income', '/api/income', '/income'].forEach(p => app.use(p, incomeRoutes));
-['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'].forEach(p => app.use(p, expenseRoutes));
-['/crm/api/member', '/crm/member', '/api/member', '/member'].forEach(p => app.use(p, memberRoutes));
-['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'].forEach(p => app.use(p, leaveRoutes));
-['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'].forEach(p => app.use(p, settingsRoutes));
-['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'].forEach(p => app.use(p, dashboardRoutes));
-['/crm/api/invoice', '/crm/invoice', '/api/invoice', '/invoice'].forEach(p => app.use(p, invoiceRoutes));
+app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], authRoutes);
+app.use(['/crm/api/business', '/crm/business', '/api/business', '/business'], businessRoutes);
+app.use(['/crm/api/income', '/crm/income', '/api/income', '/income'], incomeRoutes);
+app.use(['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'], expenseRoutes);
+app.use(['/crm/api/member', '/crm/member', '/api/member', '/member'], memberRoutes);
+app.use(['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'], leaveRoutes);
+app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], settingsRoutes);
+app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], dashboardRoutes);
+app.use(['/crm/api/invoice', '/crm/invoice', '/api/invoice', '/invoice'], invoiceRoutes);
 
 // Basic Health Check & Root Routes
 app.get(['/', '/crm', '/crm/', '/api', '/api/', '/crm/api', '/crm/api/', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
