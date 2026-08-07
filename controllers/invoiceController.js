@@ -248,12 +248,40 @@ const updateCompanyConfig = async (req, res) => {
   }
 };
 
+const DEFAULT_SUGGESTIONS = [
+  { title: 'Meta Ads', description: 'Professional Meta Ads campaign setup, audience targeting, campaign management, optimization, and performance monitoring for Facebook and Instagram advertising.' },
+  { title: 'Poster', description: 'Professional poster design services with creative layouts, premium visuals, and brand-focused design.' },
+  { title: 'Video', description: 'Professional video editing with visual effects, sound optimization, subtitles, branding elements, and production-ready delivery.' },
+  { title: 'GMB Creation', description: 'Google My Business (GMB) profile creation, business information setup, and optimization for improved local online visibility.' },
+  { title: 'GMB SEO', description: 'Google Business Profile (GMB) SEO optimization to improve local search rankings, visibility, and customer engagement.' },
+  { title: 'Static Website', description: 'Professional static website development including custom design, navigation, contact form, and SEO-friendly structure.' },
+  { title: 'Dynamic Website', description: 'Professional dynamic website development featuring an admin panel, database integration, responsive UI, and scalable functionality.' },
+  { title: 'Ecommerce', description: 'E-commerce website design and development with product catalog, shopping cart, secure checkout, payment gateway integration, and responsive design.' },
+  { title: 'AI Videos', description: 'AI-generated video creation with custom visuals, animations, voiceover integration, and professional editing.' },
+  { title: 'Branding', description: 'Professional branding services including brand strategy, visual identity, logo usage, color palette, and brand guidelines.' },
+  { title: 'Letter Head', description: 'Professional letterhead design with a custom branded layout, corporate identity, and print-ready format.' },
+  { title: 'Visiting Card', description: 'Professional visiting card design with custom branding, premium layout, and print-ready artwork.' },
+  { title: 'NFC Card', description: 'Custom NFC business card setup and configuration with digital contact sharing and brand customization.' }
+];
+
 // @desc    Get reusable description suggestions
 // @route   GET /api/invoice/suggestions
 // @access  Private
 const getSuggestions = async (req, res) => {
   try {
-    const suggestions = await DescriptionSuggestion.find().sort({ title: 1 });
+    let suggestions = await DescriptionSuggestion.find().sort({ title: 1 });
+    if (!suggestions || suggestions.length === 0) {
+      await DescriptionSuggestion.insertMany(DEFAULT_SUGGESTIONS);
+      suggestions = await DescriptionSuggestion.find().sort({ title: 1 });
+    } else {
+      for (const def of DEFAULT_SUGGESTIONS) {
+        const exists = suggestions.some(s => s.title.toLowerCase() === def.title.toLowerCase());
+        if (!exists) {
+          await DescriptionSuggestion.create(def);
+        }
+      }
+      suggestions = await DescriptionSuggestion.find().sort({ title: 1 });
+    }
     res.status(200).json(suggestions);
   } catch (error) {
     res.status(500).json({ message: 'Failed to load suggestions' });
