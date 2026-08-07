@@ -90,8 +90,8 @@ const createBusiness = async (req, res) => {
 
     res.status(201).json(business);
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: 'Invalid data' });
+    console.error('Create business error:', error);
+    res.status(400).json({ message: error.message || 'Failed to create business record' });
   }
 };
 

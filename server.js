@@ -66,6 +66,7 @@ const memberRoutes = require('./routes/memberRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
 
 // Mount Routers for all possible cPanel / local subpaths
 ['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'].forEach(p => app.use(p, authRoutes));
@@ -76,6 +77,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 ['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'].forEach(p => app.use(p, leaveRoutes));
 ['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'].forEach(p => app.use(p, settingsRoutes));
 ['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'].forEach(p => app.use(p, dashboardRoutes));
+['/crm/api/invoice', '/crm/invoice', '/api/invoice', '/invoice'].forEach(p => app.use(p, invoiceRoutes));
 
 // Basic Health Check & Root Routes
 app.get(['/', '/crm', '/crm/', '/api', '/api/', '/crm/api', '/crm/api/', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
