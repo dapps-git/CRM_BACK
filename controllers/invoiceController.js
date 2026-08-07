@@ -261,7 +261,9 @@ const DEFAULT_SUGGESTIONS = [
   { title: 'Branding', description: 'Professional branding services including brand strategy, visual identity, logo usage, color palette, and brand guidelines.' },
   { title: 'Letter Head', description: 'Professional letterhead design with a custom branded layout, corporate identity, and print-ready format.' },
   { title: 'Visiting Card', description: 'Professional visiting card design with custom branding, premium layout, and print-ready artwork.' },
-  { title: 'NFC Card', description: 'Custom NFC business card setup and configuration with digital contact sharing and brand customization.' }
+  { title: 'NFC Card', description: 'Custom NFC business card setup and configuration with digital contact sharing and brand customization.' },
+  { title: 'Website Seo', description: 'Professional website SEO services to improve search engine rankings, organic traffic, and overall website visibility.' },
+  { title: 'GMB Number Adding', description: 'Google Business Profile contact number setup and profile information update.' }
 ];
 
 // @desc    Get reusable description suggestions
