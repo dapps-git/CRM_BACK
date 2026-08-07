@@ -79,6 +79,11 @@ app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], se
 app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], dashboardRoutes);
 app.use(['/crm/api/invoice', '/crm/invoice', '/api/invoice', '/invoice'], invoiceRoutes);
 
+// Test public route to verify deployment
+app.get(['/crm/api/invoice/test-public', '/api/invoice/test-public', '/crm/invoice/test-public', '/invoice/test-public'], (req, res) => {
+  res.status(200).send('Invoice public test OK');
+});
+
 // Basic Health Check & Root Routes
 app.get(['/', '/crm', '/crm/', '/api', '/api/', '/crm/api', '/crm/api/', '/health', '/api/health', '/crm/health', '/crm/api/health'], (req, res) => {
   res.status(200).send('CRM API Server is running successfully.');
