@@ -40,8 +40,7 @@ const getDashboardData = async (req, res) => {
     const recentIncome = await Income.find().sort({ date: -1 }).limit(5);
     const recentExpense = await Expense.find().sort({ date: -1 }).limit(5);
 
-    // 6. Chart: Monthly Income & Expense & Net Profit
-    // Group transactions by month (last 6 months)
+
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     sixMonthsAgo.setDate(1);
@@ -72,7 +71,7 @@ const getDashboardData = async (req, res) => {
     // Build chronological array of last 6 months
     const chartData = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
