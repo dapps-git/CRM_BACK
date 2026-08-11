@@ -25,13 +25,23 @@ const protect = async (req, res, next) => {
     } catch (e) {}
   }
 
-  // 4. Check headers fallback
+  // 4. Check headers fallback (supports Apache HTTP_AUTHORIZATION and x-auth-token)
   if (!token) {
-    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const authHeader = req.headers.authorization || 
+                       req.headers.Authorization || 
+                       req.headers.http_authorization || 
+                       req.headers.HTTP_AUTHORIZATION;
+
     if (authHeader && authHeader.startsWith('Bearer')) {
       token = authHeader.split(' ')[1];
+    } else if (authHeader && authHeader.length > 20) {
+      token = authHeader;
     } else if (req.headers['x-auth-token']) {
       token = req.headers['x-auth-token'];
+    } else if (req.headers['X-Auth-Token']) {
+      token = req.headers['X-Auth-Token'];
+    } else if (req.headers['x-access-token']) {
+      token = req.headers['x-access-token'];
     }
   }
 
