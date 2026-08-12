@@ -10,7 +10,7 @@ const generateOTP = () => {
 // Helper to sign JWT
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'supersecretjwtkey_crevionads_12345', {
-    expiresIn: process.env.SESSION_EXPIRY || '24h',
+    expiresIn: process.env.SESSION_EXPIRY || '365d',
   });
 };
 

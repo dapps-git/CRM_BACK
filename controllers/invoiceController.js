@@ -64,11 +64,31 @@ const getInvoiceById = async (req, res) => {
   }
 };
 
-// Helper: Generate next invoice number
+// Helper: Generate next invoice number (based on highest existing number, not count)
 const generateNextInvoiceNumber = async () => {
-  const count = await Invoice.countDocuments();
-  const nextNum = count + 1;
-  return `INV-${String(nextNum).padStart(4, '0')}`;
+  // Find the invoice with the highest numeric suffix
+  const all = await Invoice.find({}, { invoiceNumber: 1 }).lean();
+  let maxNum = 0;
+  for (const inv of all) {
+    const match = inv.invoiceNumber && inv.invoiceNumber.match(/INV-(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) maxNum = num;
+    }
+  }
+  return `INV-${String(maxNum + 1).padStart(4, '0')}`;
+};
+
+// @desc    Get the next available invoice number
+// @route   GET /api/invoice/next-number
+// @access  Private
+const getNextInvoiceNumber = async (req, res) => {
+  try {
+    const nextNumber = await generateNextInvoiceNumber();
+    res.status(200).json({ invoiceNumber: nextNumber });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to generate next invoice number' });
+  }
 };
 
 // @desc    Create or Update invoice (upsert so regenerating PDF updates existing record)
@@ -180,7 +200,15 @@ const createOrUpdateInvoice = async (req, res) => {
     res.status(200).json(invoice);
   } catch (error) {
     console.error('createOrUpdateInvoice error:', error);
-    res.status(400).json({ message: error.message || 'Failed to save invoice' });
+    // Return a clean, user-friendly message instead of raw Mongoose validation text
+    if (error.name === 'ValidationError') {
+      const emptyItem = error.errors && Object.keys(error.errors).some(k => k.includes('items'));
+      const msg = emptyItem
+        ? 'Please fill in a title for all service items before saving'
+        : 'Please complete all required fields before saving';
+      return res.status(400).json({ message: msg });
+    }
+    res.status(400).json({ message: 'Failed to save invoice. Please try again.' });
   }
 };
 
@@ -318,6 +346,7 @@ const saveSuggestion = async (req, res) => {
 module.exports = {
   getInvoices,
   getInvoiceById,
+  getNextInvoiceNumber,
   createOrUpdateInvoice,
   updateInvoice,
   deleteInvoice,

@@ -67,6 +67,7 @@ const leaveRoutes = require('./routes/leaveRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 // Mount Routers for all possible cPanel / local subpaths
 app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], authRoutes);
@@ -78,6 +79,7 @@ app.use(['/crm/api/leave', '/crm/leave', '/api/leave', '/leave'], leaveRoutes);
 app.use(['/crm/api/settings', '/crm/settings', '/api/settings', '/settings'], settingsRoutes);
 app.use(['/crm/api/dashboard', '/crm/dashboard', '/api/dashboard', '/dashboard'], dashboardRoutes);
 app.use(['/crm/api/invoice', '/crm/invoice', '/api/invoice', '/invoice'], invoiceRoutes);
+app.use(['/crm/api/notes', '/crm/notes', '/api/notes', '/notes'], noteRoutes);
 
 // Test public route to verify deployment
 app.get(['/crm/api/invoice/test-public', '/api/invoice/test-public', '/crm/invoice/test-public', '/invoice/test-public'], (req, res) => {

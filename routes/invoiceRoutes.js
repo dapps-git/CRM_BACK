@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getInvoices,
   getInvoiceById,
+  getNextInvoiceNumber,
   createOrUpdateInvoice,
   updateInvoice,
   deleteInvoice,
@@ -18,6 +19,8 @@ router.put('/config', protect, updateCompanyConfig);
 
 router.get('/suggestions', protect, getSuggestions);
 router.post('/suggestions', protect, saveSuggestion);
+
+router.get('/next-number', protect, getNextInvoiceNumber);
 
 router.route('/')
   .get(protect, getInvoices)

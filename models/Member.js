@@ -10,7 +10,11 @@ const MemberSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-  }
+  },
+  idProofs: [{
+    idName: { type: String, trim: true },
+    idPhoto: { type: String, trim: true }
+  }]
 }, {
   timestamps: true,
 });

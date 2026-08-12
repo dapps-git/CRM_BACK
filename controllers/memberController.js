@@ -29,13 +29,13 @@ const getMembers = async (req, res) => {
 // @access  Private
 const createMember = async (req, res) => {
   try {
-    const { name, phoneNumber } = req.body;
+    const { name, phoneNumber, idProofs } = req.body;
 
     if (!name || !phoneNumber) {
       return res.status(400).json({ message: 'Please provide name and phone number' });
     }
 
-    const member = await Member.create({ name, phoneNumber });
+    const member = await Member.create({ name, phoneNumber, idProofs: idProofs || [] });
     res.status(201).json(member);
   } catch (error) {
     res.status(400).json({ message: 'Failed to create member' });

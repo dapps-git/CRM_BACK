@@ -13,7 +13,7 @@ const LeaveSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Present', 'Absent', 'Casual Leave', 'Sick Leave', 'Half Day'],
+    enum: ['Present', 'Absent', 'Casual Leave', 'Company Holiday', 'Half Day', 'Sick Leave'],
   },
   reason: {
     type: String,

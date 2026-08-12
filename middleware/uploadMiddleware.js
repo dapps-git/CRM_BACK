@@ -59,10 +59,18 @@ const uploadToCloudinaryOrLocal = async (file) => {
         api_secret: apiSecret
       });
 
-      const result = await cloudinary.uploader.upload(fileData, {
+      const isImage = file.mimetype ? file.mimetype.startsWith('image/') : true;
+      const uploadParams = {
         folder: 'crevionads_crm',
         resource_type: 'auto'
-      });
+      };
+
+      if (isImage) {
+        uploadParams.format = 'webp';
+        uploadParams.transformation = [{ format: 'webp', quality: 'auto' }];
+      }
+
+      const result = await cloudinary.uploader.upload(fileData, uploadParams);
 
       return result.secure_url;
     }
