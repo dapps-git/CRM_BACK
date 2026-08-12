@@ -1,3 +1,5 @@
+const dns = require('dns');
+try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
 try { require('dotenv').config(); } catch (e) {}
 const express = require('express');
 const cors = require('cors');
@@ -32,7 +34,10 @@ const seedAdminUsers = async () => {
 
 // Connect Database
 connectDB().then(() => {
-  seedAdminUsers();
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState === 1) {
+    seedAdminUsers();
+  }
 }).catch(() => {});
 
 // Universal CORS Middleware with preflight handling

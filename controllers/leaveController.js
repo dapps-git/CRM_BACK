@@ -129,7 +129,6 @@ const getMonthlySummary = async (req, res) => {
           stats.totalLeave += 1;
         } else if (l.status === 'Company Holiday') {
           stats.holiday += 1;
-          stats.totalLeave += 1;
         } else if (l.status === 'Sick Leave') {
           stats.sick += 1;
           stats.totalLeave += 1;
