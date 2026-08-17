@@ -1,6 +1,5 @@
 /**
  * reset-admin.js
- * Run once to reset or re-create the admin users with correct hashed passwords.
  * Usage: node reset-admin.js
  */
 require('dotenv').config();
@@ -15,20 +14,22 @@ const connectDB = async () => {
 const resetAdmins = async () => {
   await connectDB();
 
-  const admins = [
-    { email: 'crevionads@gmail.com',  password: 'Crevionads@CRM1234' },
-    { email: 'creweanads@gmail.com',  password: 'creweanadscrm@1234' },
-  ];
+  // Remove legacy account
+  await User.deleteMany({ email: 'creweanads@gmail.com' });
 
-  for (const admin of admins) {
-    // Delete existing record so the pre-save hook re-hashes cleanly
-    await User.deleteOne({ email: admin.email });
-    await User.create({ email: admin.email, password: admin.password, isVerified: true });
-    console.log(`✅ Reset: ${admin.email}`);
-  }
+  const primaryAdmin = { email: 'crevionads@gmail.com', password: 'Crevionads@CRM1234' };
 
-  console.log('\nAll admin accounts reset. You can now log in with:');
-  admins.forEach(a => console.log(`  Email: ${a.email}   Password: ${a.password}`));
+  await User.deleteOne({ email: primaryAdmin.email });
+  await User.create({
+    email: primaryAdmin.email,
+    password: primaryAdmin.password,
+    mobileNumber: '9745307450',
+    isVerified: true
+  });
+  console.log(`✅ Reset primary admin: ${primaryAdmin.email}`);
+
+  console.log('\nAdmin account ready:');
+  console.log(`  Email: ${primaryAdmin.email}   Password: ${primaryAdmin.password}`);
   process.exit(0);
 };
 

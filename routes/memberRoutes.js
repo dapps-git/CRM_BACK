@@ -4,7 +4,8 @@ const {
   getMembers,
   createMember,
   updateMember,
-  deleteMember
+  deleteMember,
+  triggerBirthdayAlert
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -15,5 +16,7 @@ router.route('/')
 router.route('/:id')
   .put(protect, updateMember)
   .delete(protect, deleteMember);
+
+router.post('/:id/trigger-birthday', protect, triggerBirthdayAlert);
 
 module.exports = router;

@@ -52,7 +52,7 @@ const protect = async (req, res, next) => {
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_crevionads_12345');
+      const decoded = jwt.verify(token, ENCRYPTED_JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-password');
       if (!req.user) {
         req.user = await User.findOne();

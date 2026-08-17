@@ -3,36 +3,45 @@ const Settings = require('../models/Settings');
 
 const sendEmail = async (options) => {
   try {
-    // 1. Try checking env variables
-    let service = process.env.EMAIL_SERVICE;
+    let service = process.env.EMAIL_SERVICE || 'gmail';
+    let host = process.env.EMAIL_HOST || '';
+    let port = Number(process.env.EMAIL_PORT) || 465;
     let user = process.env.EMAIL_USER;
     let pass = process.env.EMAIL_PASS;
 
-    // 2. Fallback to settings from database
-    if (!user || !pass) {
+    // Fallback to database Settings document if env variables are empty or placeholder
+    if (!user || !pass || user.includes('your_') || pass.includes('your_')) {
       const settings = await Settings.findOne();
-      if (settings && settings.emailConfig && settings.emailConfig.user) {
-        service = settings.emailConfig.service || 'gmail';
+      if (settings && settings.emailConfig && settings.emailConfig.user && settings.emailConfig.pass) {
+        service = settings.emailConfig.service || service;
         user = settings.emailConfig.user;
         pass = settings.emailConfig.pass;
+        host = settings.emailConfig.host || host;
       }
     }
 
-    // Check if configuration exists
+    // If credentials are missing or still placeholder, notify user clearly
     if (!user || !pass || user.includes('your_') || pass.includes('your_')) {
       console.log('----------------------------------------------------');
-      console.log(`[EMAIL SIMULATOR] To: ${options.to}`);
-      console.log(`[EMAIL SIMULATOR] Subject: ${options.subject}`);
-      console.log(`[EMAIL SIMULATOR] Body:\n${options.text}`);
+      console.log(`[EMAIL NOTICE] Real email requires a valid App Password in backend/.env or Settings page.`);
+      console.log(`[EMAIL SIMULATED OUTPUT] To: ${options.to}`);
+      console.log(`[EMAIL SIMULATED OUTPUT] Subject: ${options.subject}`);
       console.log('----------------------------------------------------');
-      return { simulated: true };
+      return { simulated: true, message: 'SMTP app password missing in .env or Settings' };
     }
 
-    // Create Robust Gmail Transporter
+    // Determine SMTP Server Host
+    let smtpHost = 'smtp.gmail.com';
+    if (host) {
+      smtpHost = host;
+    } else if (service.toLowerCase().includes('hostinger') || user.includes('@aladhwastudio.com') || user.includes('@crevionads.com')) {
+      smtpHost = 'smtp.hostinger.com';
+    }
+
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // SSL
+      host: smtpHost,
+      port: port,
+      secure: port === 465,
       auth: {
         user: user.trim(),
         pass: pass.trim().replace(/\s+/g, ''), // Strip spaces from App Password
@@ -43,7 +52,7 @@ const sendEmail = async (options) => {
     });
 
     const mailOptions = {
-      from: `"Crevionads CRM" <${user}>`,
+      from: `"Crevion ads CRM" <${user.trim()}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -51,16 +60,11 @@ const sendEmail = async (options) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully: ${info.messageId}`);
+    console.log(`✅ Real Email sent successfully to ${options.to}: ${info.messageId}`);
     return info;
   } catch (error) {
-    console.error('Email send failed, fallback to simulation:', error.message);
-    console.log('----------------------------------------------------');
-    console.log(`[EMAIL SIMULATOR - FALLBACK] To: ${options.to}`);
-    console.log(`[EMAIL SIMULATOR - FALLBACK] Subject: ${options.subject}`);
-    console.log(`[EMAIL SIMULATOR - FALLBACK] Body:\n${options.text}`);
-    console.log('----------------------------------------------------');
-    return { simulated: true, error: error.message };
+    console.error('❌ Real Email delivery error:', error.message);
+    return { error: error.message };
   }
 };
 

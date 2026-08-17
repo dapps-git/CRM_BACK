@@ -11,6 +11,27 @@ const MemberSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  profileImage: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  dob: {
+    type: Date,
+    default: null
+  },
+  birthdayAlertSentYear: {
+    type: Number,
+    default: null
+  },
+  birthday2DaysAlertSentYear: {
+    type: Number,
+    default: null
+  },
+  birthdayTodayAlertSentYear: {
+    type: Number,
+    default: null
+  },
   idProofs: [{
     idName: { type: String, trim: true },
     idPhoto: { type: String, trim: true }

@@ -13,6 +13,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  mobileNumber: {
+    type: String,
+    trim: true,
+    default: '9745307450',
+  },
   otp: {
     type: String,
     default: null,
@@ -23,7 +28,7 @@ const UserSchema = new mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
-    default: true, // Default Admin is pre-verified
+    default: true,
   }
 }, {
   timestamps: true,
