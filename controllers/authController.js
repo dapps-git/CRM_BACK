@@ -174,16 +174,37 @@ const forgotPassword = async (req, res) => {
     try {
       await sendEmail({
         to: 'crevionads@gmail.com',
-        subject: '🔑 Your Crevionads CRM Password Reset OTP',
-        text: `Your password reset verification OTP is: ${otp}. It is valid for 10 minutes.`,
+        subject: '🔑 Password Reset Verification Code',
+        text: `Your password reset verification code is: ${otp}. It is valid for 10 minutes.`,
         html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 8px; max-width: 500px; margin: 0 auto;">
-            <h2 style="color: #f4ce41; margin-top: 0;">🔑 Password Reset Verification</h2>
-            <p style="font-size: 14px; color: #cbd5e1;">Use the verification code below to reset your Crevionads CRM admin password:</p>
-            <div style="background-color: #1e293b; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #334155; margin: 20px 0;">
-              <span style="font-size: 28px; font-weight: 800; color: #f43f5e; letter-spacing: 6px; font-family: monospace;">${otp}</span>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 32px 16px;">
+            <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+              <!-- Brand Header -->
+              <div style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-size: 18px; font-weight: 800; color: #8a32c6; letter-spacing: -0.5px;">Crevion<span style="color: #0f172a;">.ads</span></span>
+              </div>
+
+              <!-- Title -->
+              <h1 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.3px;">Password Reset Verification</h1>
+              
+              <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px 0;">
+                Here is your verification code to reset your Crevion ads CRM password:
+              </p>
+
+              <!-- OTP Display Box -->
+              <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 20px; text-align: center; margin: 0 0 20px 0;">
+                <span style="font-size: 32px; font-weight: 800; color: #7c3aed; letter-spacing: 8px; font-family: 'SF Mono', Consolas, Monaco, monospace; display: block;">${otp}</span>
+              </div>
+
+              <p style="font-size: 12.5px; line-height: 1.5; color: #64748b; margin: 0 0 24px 0;">
+                This verification code will expire in 10 minutes. If you did not request this, you can safely ignore this email.
+              </p>
+
+              <!-- Footer -->
+              <div style="border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                <p style="font-size: 12px; color: #94a3b8; margin: 0;">Crevion ads CRM | Automated System Notification</p>
+              </div>
             </div>
-            <p style="font-size: 12px; color: #94a3b8;">This verification code is valid for 10 minutes. If you did not request a password reset, please ignore this email.</p>
           </div>
         `
       });

@@ -212,62 +212,66 @@ const sendExpiryAlertEmail = async (domain) => {
 
   const expDateStr = formatDate(domain.expirationDate);
   const purchaseDateStr = formatDate(domain.purchaseDate);
-  const subject = `⚠️ URGENT: Domain Expiration Warning for ${domain.domainName}`;
+  const subject = `⚠️ Domain Expiration Alert: ${domain.domainName}`;
 
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 8px; background-color: #ffffff;">
-      <div style="background-color: #8a32c6; padding: 18px; text-align: center; border-radius: 6px 6px 0 0;">
-        <h2 style="color: #ffffff; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">⚠️ Domain Expiration Warning</h2>
-      </div>
-      
-      <div style="padding: 24px; color: #333333; line-height: 1.6;">
-        <p style="font-size: 15px; font-weight: bold; color: #111827;">Hello,</p>
-        <p style="font-size: 14px; color: #4b5563;">
-          This is an automated alert from <strong>Crevion ads CRM</strong> to notify you that the following domain is expiring soon. Please review the details below:
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 32px 16px;">
+      <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+        <!-- Brand Header -->
+        <div style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
+          <span style="font-size: 18px; font-weight: 800; color: #8a32c6; letter-spacing: -0.5px;">Crevion<span style="color: #0f172a;">.ads</span></span>
+        </div>
+
+        <!-- Title -->
+        <h1 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.3px;">Domain Expiration Alert</h1>
+        
+        <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px 0;">
+          The following domain is scheduled to expire soon. Please review the details below:
         </p>
 
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13.5px; border: 1px solid #e5e7eb;">
-          <tr style="background-color: #f9fafb;">
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; width: 40%; color: #374151;">Domain Name:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; color: #dc2626; font-weight: bold; font-size: 15px;">${domain.domainName}</td>
+        <!-- Domain Details Table -->
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-size: 13px;">
+          <tr style="background-color: #f8fafc;">
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b; width: 40%;">Domain Name</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${domain.domainName}</td>
           </tr>
           <tr>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Project Name:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #111827;">${domain.projectName || 'N/A'}</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Project Name</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #334155;">${domain.projectName || 'N/A'}</td>
           </tr>
-          <tr style="background-color: #f9fafb;">
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Platform ( Register ):</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #8a32c6;">${domain.platform || 'Hostinger'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Account Holder:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${domain.accountHolder || 'N/A'}</td>
-          </tr>
-          <tr style="background-color: #f9fafb;">
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Purchased Date:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb;">${purchaseDateStr || 'N/A'}</td>
+          <tr style="background-color: #f8fafc;">
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Platform</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #334155;">${domain.platform || 'Hostinger'}</td>
           </tr>
           <tr>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Expiration Date:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; color: #dc2626; font-weight: bold;">${expDateStr}</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Account Holder</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #334155;">${domain.accountHolder || 'N/A'}</td>
+          </tr>
+          <tr style="background-color: #f8fafc;">
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Purchase Date</td>
+            <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #334155;">${purchaseDateStr || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; ${domain.renewalCost ? 'border-bottom: 1px solid #e2e8f0;' : ''} font-weight: 600; color: #64748b;">Expiration Date</td>
+            <td style="padding: 10px 14px; ${domain.renewalCost ? 'border-bottom: 1px solid #e2e8f0;' : ''} font-weight: 700; color: #e11d48;">${expDateStr}</td>
           </tr>
           ${domain.renewalCost ? `
-          <tr style="background-color: #f9fafb;">
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Est. Renewal Cost:</td>
-            <td style="padding: 10px 12px; border: 1px solid #e5e7eb; font-weight: bold; color: #059669;">₹${Number(domain.renewalCost).toLocaleString()}</td>
+          <tr style="background-color: #f8fafc;">
+            <td style="padding: 10px 14px; font-weight: 600; color: #64748b;">Est. Renewal Cost</td>
+            <td style="padding: 10px 14px; font-weight: 700; color: #059669;">₹${Number(domain.renewalCost).toLocaleString()}</td>
           </tr>` : ''}
         </table>
 
-        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin-bottom: 24px;">
-          <p style="font-size: 13.5px; color: #b91c1c; margin: 0; font-weight: bold;">
-            ⚠️ Action Required: Please renew this domain immediately to prevent website downtime or loss of domain ownership.
+        <!-- Alert Box -->
+        <div style="background-color: #fff1f2; border-left: 3px solid #f43f5e; padding: 12px 14px; border-radius: 0 6px 6px 0; margin-bottom: 24px;">
+          <p style="font-size: 12.5px; color: #9f1239; margin: 0; font-weight: 500;">
+            Action Required: Please renew this domain promptly to prevent website downtime.
           </p>
         </div>
 
-        <div style="margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 18px;">
-          <p style="font-size: 14px; margin: 0; color: #374151; font-weight: 600;">Thank you,</p>
-          <p style="font-size: 16px; margin: 4px 0 0 0; color: #8a32c6; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">CREVIONADS</p>
-          <p style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Crevion ads CRM | crevionads@gmail.com</p>
+        <!-- Footer -->
+        <div style="border-top: 1px solid #f1f5f9; padding-top: 16px;">
+          <p style="font-size: 12px; color: #94a3b8; margin: 0;">Crevion ads CRM | Automated System Notification</p>
         </div>
       </div>
     </div>
