@@ -383,62 +383,81 @@ const saveSuggestion = async (req, res) => {
 const getPDFArchives = async (req, res) => {
   try {
     const { search } = req.query;
+    let pdfs = [];
 
-    // Auto-seed existing invoices if PDFArchive is empty
-    const archiveCount = await PDFArchive.countDocuments();
-    if (archiveCount === 0) {
-      const allInvoices = await Invoice.find().sort({ createdAt: 1 }).lean();
-      for (const inv of allInvoices) {
-        try {
-          const cleanItems = (inv.items || []).map(item => ({
-            title: item.title || 'Service Item',
-            description: item.description || '',
-            quantity: item.quantity !== undefined ? item.quantity : 1,
-            rate: Number(item.rate) || 0,
-            amount: Number(item.amount) || 0
-          }));
+    try {
+      // Auto-seed existing invoices if PDFArchive is empty
+      const archiveCount = await PDFArchive.countDocuments();
+      if (archiveCount === 0) {
+        const allInvoices = await Invoice.find().sort({ createdAt: 1 }).lean();
+        for (const inv of allInvoices) {
+          try {
+            const cleanItems = (inv.items || []).map(item => ({
+              title: item.title || 'Service Item',
+              description: item.description || '',
+              quantity: item.quantity !== undefined ? item.quantity : 1,
+              rate: Number(item.rate) || 0,
+              amount: Number(item.amount) || 0
+            }));
 
-          await PDFArchive.create({
-            invoiceId: inv._id,
-            invoiceNumber: inv.invoiceNumber || 'INV-0001',
-            version: 1,
-            clientName: inv.clientName || 'Client',
-            clientPhone: inv.clientPhone || '',
-            clientAddress: inv.clientAddress || '',
-            clientEmail: inv.clientEmail || '',
-            invoiceDate: inv.invoiceDate || new Date(),
-            terms: inv.terms || 'Due on receipt',
-            dueDate: inv.dueDate || new Date(),
-            items: cleanItems,
-            totalAmount: Number(inv.totalAmount) || 0,
-            receivedAmount: Number(inv.receivedAmount) || 0,
-            balanceDue: Number(inv.balanceDue) || 0,
-            companyDetails: inv.companyDetails || DEFAULT_COMPANY,
-            createdAt: inv.createdAt || new Date()
-          });
-        } catch (seedErr) {
-          console.error('Seed archive error for inv:', inv._id, seedErr);
+            await PDFArchive.create({
+              invoiceId: inv._id,
+              invoiceNumber: inv.invoiceNumber || 'INV-0001',
+              version: 1,
+              clientName: inv.clientName || 'Client',
+              clientPhone: inv.clientPhone || '',
+              clientAddress: inv.clientAddress || '',
+              clientEmail: inv.clientEmail || '',
+              invoiceDate: inv.invoiceDate || new Date(),
+              terms: inv.terms || 'Due on receipt',
+              dueDate: inv.dueDate || new Date(),
+              items: cleanItems,
+              totalAmount: Number(inv.totalAmount) || 0,
+              receivedAmount: Number(inv.receivedAmount) || 0,
+              balanceDue: Number(inv.balanceDue) || 0,
+              companyDetails: inv.companyDetails || DEFAULT_COMPANY,
+              createdAt: inv.createdAt || new Date()
+            });
+          } catch (seedErr) {
+            console.error('Seed archive error for inv:', inv._id, seedErr);
+          }
         }
       }
+
+      let query = {};
+      if (search) {
+        query = {
+          $or: [
+            { invoiceNumber: { $regex: search, $options: 'i' } },
+            { clientName: { $regex: search, $options: 'i' } },
+            { clientPhone: { $regex: search, $options: 'i' } },
+            { clientEmail: { $regex: search, $options: 'i' } }
+          ]
+        };
+      }
+
+      pdfs = await PDFArchive.find(query).sort({ createdAt: -1 });
+    } catch (dbErr) {
+      console.error('PDFArchive query error, falling back to Invoice collection:', dbErr);
+      let invQuery = {};
+      if (search) {
+        invQuery = {
+          $or: [
+            { invoiceNumber: { $regex: search, $options: 'i' } },
+            { clientName: { $regex: search, $options: 'i' } },
+            { clientPhone: { $regex: search, $options: 'i' } },
+            { clientEmail: { $regex: search, $options: 'i' } }
+          ]
+        };
+      }
+      const rawInvoices = await Invoice.find(invQuery).sort({ createdAt: -1 }).lean();
+      pdfs = rawInvoices.map(i => ({ ...i, version: 1 }));
     }
 
-    let query = {};
-    if (search) {
-      query = {
-        $or: [
-          { invoiceNumber: { $regex: search, $options: 'i' } },
-          { clientName: { $regex: search, $options: 'i' } },
-          { clientPhone: { $regex: search, $options: 'i' } },
-          { clientEmail: { $regex: search, $options: 'i' } }
-        ]
-      };
-    }
-
-    const pdfs = await PDFArchive.find(query).sort({ createdAt: -1 });
     res.status(200).json({ pdfs });
   } catch (error) {
-    console.error('getPDFArchives error:', error);
-    res.status(500).json({ message: 'Failed to retrieve PDF archive versions' });
+    console.error('getPDFArchives outer error:', error);
+    res.status(200).json({ pdfs: [] });
   }
 };
 
