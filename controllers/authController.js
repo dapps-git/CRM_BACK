@@ -204,32 +204,38 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { email, mobileNumber, otp, newPassword } = req.body;
 
-  if ((!email && !mobileNumber) || !otp || !newPassword) {
-    return res.status(400).json({ message: 'Please provide all required fields' });
+  const cleanOtp = otp ? String(otp).trim() : '';
+  const cleanPassword = newPassword ? String(newPassword).trim() : '';
+
+  if (!cleanOtp || !cleanPassword) {
+    return res.status(400).json({ message: 'Please enter both the OTP code and your new password' });
   }
 
   try {
     let user = null;
     if (email) {
-      user = await User.findOne({ email: email.trim().toLowerCase() });
+      user = await User.findOne({ email: String(email).trim().toLowerCase() });
     }
     if (!user && mobileNumber) {
-      user = await User.findOne({ mobileNumber: mobileNumber.trim() });
+      user = await User.findOne({ mobileNumber: String(mobileNumber).trim() });
+    }
+    if (!user && cleanOtp) {
+      user = await User.findOne({ otp: cleanOtp });
     }
     if (!user) {
       user = await User.findOne();
     }
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Admin user account not found' });
     }
 
-    if (!user.otp || user.otp !== otp.trim() || new Date() > user.otpExpires) {
-      return res.status(400).json({ message: 'Invalid or expired OTP code' });
+    if (!user.otp || user.otp !== cleanOtp || new Date() > user.otpExpires) {
+      return res.status(400).json({ message: 'Invalid or expired OTP code. Please request a new OTP.' });
     }
 
     // Set new password (will be hashed automatically by pre-save hook)
-    user.password = newPassword.trim();
+    user.password = cleanPassword;
     user.otp = null;
     user.otpExpires = null;
     await user.save();
