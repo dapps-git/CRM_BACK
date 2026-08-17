@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const InvoiceItemSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, default: '' },
-  quantity: { type: Number, required: true, default: 1 },
+  quantity: { type: mongoose.Schema.Types.Mixed, default: 1 },
   rate: { type: Number, required: true, default: 0 },
   amount: { type: Number, required: true, default: 0 }
 });

@@ -1,6 +1,7 @@
 const Invoice = require('../models/Invoice');
 const InvoiceCompanyConfig = require('../models/InvoiceCompanyConfig');
 const DescriptionSuggestion = require('../models/DescriptionSuggestion');
+const PDFArchive = require('../models/PDFArchive');
 
 // Default Crevion Ads address details
 const DEFAULT_COMPANY = {
@@ -197,6 +198,38 @@ const createOrUpdateInvoice = async (req, res) => {
       });
     }
 
+    // Save a PDF Archive Version snapshot for this edit iteration
+    try {
+      const versionCount = await PDFArchive.countDocuments({ invoiceNumber: invoice.invoiceNumber });
+      const cleanItems = (invoice.items || []).map(item => ({
+        title: item.title || 'Service Item',
+        description: item.description || '',
+        quantity: item.quantity !== undefined ? item.quantity : 1,
+        rate: Number(item.rate) || 0,
+        amount: Number(item.amount) || 0
+      }));
+
+      await PDFArchive.create({
+        invoiceId: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        version: versionCount + 1,
+        clientName: invoice.clientName,
+        clientPhone: invoice.clientPhone || '',
+        clientAddress: invoice.clientAddress || '',
+        clientEmail: invoice.clientEmail || '',
+        invoiceDate: invoice.invoiceDate,
+        terms: invoice.terms,
+        dueDate: invoice.dueDate,
+        items: cleanItems,
+        totalAmount: Number(invoice.totalAmount) || 0,
+        receivedAmount: Number(invoice.receivedAmount) || 0,
+        balanceDue: Number(invoice.balanceDue) || 0,
+        companyDetails: invoice.companyDetails
+      });
+    } catch (archiveErr) {
+      console.error('PDF Archive version snapshot error:', archiveErr);
+    }
+
     res.status(200).json(invoice);
   } catch (error) {
     console.error('createOrUpdateInvoice error:', error);
@@ -277,6 +310,7 @@ const updateCompanyConfig = async (req, res) => {
 };
 
 const DEFAULT_SUGGESTIONS = [
+  { title: 'Google Ads', description: 'Google Ads campaign setup, keyword research, ad creation, targeting, optimization, monitoring, and performance management.' },
   { title: 'Meta Ads', description: 'Professional Meta Ads campaign setup, audience targeting, campaign management, optimization, and performance monitoring for Facebook and Instagram advertising.' },
   { title: 'Poster', description: 'Professional poster design services with creative layouts, premium visuals, and brand-focused design.' },
   { title: 'Video', description: 'Professional video editing with visual effects, sound optimization, subtitles, branding elements, and production-ready delivery.' },
@@ -343,6 +377,71 @@ const saveSuggestion = async (req, res) => {
   }
 };
 
+// @desc    Get all PDF archive versions
+// @route   GET /api/invoice/pdfs
+// @access  Private
+const getPDFArchives = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    // Auto-seed existing invoices if PDFArchive is empty
+    const archiveCount = await PDFArchive.countDocuments();
+    if (archiveCount === 0) {
+      const allInvoices = await Invoice.find().sort({ createdAt: 1 }).lean();
+      for (const inv of allInvoices) {
+        try {
+          const cleanItems = (inv.items || []).map(item => ({
+            title: item.title || 'Service Item',
+            description: item.description || '',
+            quantity: item.quantity !== undefined ? item.quantity : 1,
+            rate: Number(item.rate) || 0,
+            amount: Number(item.amount) || 0
+          }));
+
+          await PDFArchive.create({
+            invoiceId: inv._id,
+            invoiceNumber: inv.invoiceNumber || 'INV-0001',
+            version: 1,
+            clientName: inv.clientName || 'Client',
+            clientPhone: inv.clientPhone || '',
+            clientAddress: inv.clientAddress || '',
+            clientEmail: inv.clientEmail || '',
+            invoiceDate: inv.invoiceDate || new Date(),
+            terms: inv.terms || 'Due on receipt',
+            dueDate: inv.dueDate || new Date(),
+            items: cleanItems,
+            totalAmount: Number(inv.totalAmount) || 0,
+            receivedAmount: Number(inv.receivedAmount) || 0,
+            balanceDue: Number(inv.balanceDue) || 0,
+            companyDetails: inv.companyDetails || DEFAULT_COMPANY,
+            createdAt: inv.createdAt || new Date()
+          });
+        } catch (seedErr) {
+          console.error('Seed archive error for inv:', inv._id, seedErr);
+        }
+      }
+    }
+
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { invoiceNumber: { $regex: search, $options: 'i' } },
+          { clientName: { $regex: search, $options: 'i' } },
+          { clientPhone: { $regex: search, $options: 'i' } },
+          { clientEmail: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    const pdfs = await PDFArchive.find(query).sort({ createdAt: -1 });
+    res.status(200).json({ pdfs });
+  } catch (error) {
+    console.error('getPDFArchives error:', error);
+    res.status(500).json({ message: 'Failed to retrieve PDF archive versions' });
+  }
+};
+
 module.exports = {
   getInvoices,
   getInvoiceById,
@@ -353,5 +452,6 @@ module.exports = {
   getCompanyConfig,
   updateCompanyConfig,
   getSuggestions,
-  saveSuggestion
+  saveSuggestion,
+  getPDFArchives
 };

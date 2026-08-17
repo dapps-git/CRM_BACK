@@ -10,7 +10,8 @@ const {
   getCompanyConfig,
   updateCompanyConfig,
   getSuggestions,
-  saveSuggestion
+  saveSuggestion,
+  getPDFArchives
 } = require('../controllers/invoiceController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -21,6 +22,7 @@ router.get('/suggestions', protect, getSuggestions);
 router.post('/suggestions', protect, saveSuggestion);
 
 router.get('/next-number', protect, getNextInvoiceNumber);
+router.get('/pdfs', protect, getPDFArchives);
 
 router.route('/')
   .get(protect, getInvoices)
