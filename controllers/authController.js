@@ -193,9 +193,8 @@ const forgotPassword = async (req, res) => {
 
     res.status(200).json({ 
       success: true,
-      message: 'OTP code sent via email to crevionads@gmail.com',
-      email: 'crevionads@gmail.com',
-      otp: otp
+      message: 'Verification OTP sent to crevionads@gmail.com. Please check your email inbox.',
+      email: 'crevionads@gmail.com'
     });
   } catch (error) {
     console.error('Forgot password error:', error);
