@@ -170,35 +170,31 @@ const forgotPassword = async (req, res) => {
     console.log(`[NODEMAILER RESET OTP] Target: ${user.email} | OTP: ${otp}`);
     console.log(`----------------------------------------------------`);
 
-    // Send individual OTP emails to BOTH crevionads@gmail.com AND saleelvt57@gmail.com
-    const recipientEmails = Array.from(new Set([user.email, 'crevionads@gmail.com', 'saleelvt57@gmail.com'])).filter(Boolean);
-
-    for (const emailAddr of recipientEmails) {
-      try {
-        await sendEmail({
-          to: emailAddr,
-          subject: '🔑 Your Crevionads CRM Password Reset OTP',
-          text: `Your password reset verification OTP is: ${otp}. It is valid for 10 minutes.`,
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 8px; max-width: 500px; margin: 0 auto;">
-              <h2 style="color: #f4ce41; margin-top: 0;">🔑 Password Reset Verification</h2>
-              <p style="font-size: 14px; color: #cbd5e1;">Use the verification code below to reset your Crevionads CRM admin password:</p>
-              <div style="background-color: #1e293b; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #334155; margin: 20px 0;">
-                <span style="font-size: 28px; font-weight: 800; color: #f43f5e; letter-spacing: 6px; font-family: monospace;">${otp}</span>
-              </div>
-              <p style="font-size: 12px; color: #94a3b8;">This verification code is valid for 10 minutes. If you did not request a password reset, please ignore this email.</p>
+    // Send OTP email ONLY to crevionads@gmail.com
+    try {
+      await sendEmail({
+        to: 'crevionads@gmail.com',
+        subject: '🔑 Your Crevionads CRM Password Reset OTP',
+        text: `Your password reset verification OTP is: ${otp}. It is valid for 10 minutes.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 8px; max-width: 500px; margin: 0 auto;">
+            <h2 style="color: #f4ce41; margin-top: 0;">🔑 Password Reset Verification</h2>
+            <p style="font-size: 14px; color: #cbd5e1;">Use the verification code below to reset your Crevionads CRM admin password:</p>
+            <div style="background-color: #1e293b; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #334155; margin: 20px 0;">
+              <span style="font-size: 28px; font-weight: 800; color: #f43f5e; letter-spacing: 6px; font-family: monospace;">${otp}</span>
             </div>
-          `
-        });
-      } catch (mailErr) {
-        console.error(`Error delivering OTP email to ${emailAddr}:`, mailErr);
-      }
+            <p style="font-size: 12px; color: #94a3b8;">This verification code is valid for 10 minutes. If you did not request a password reset, please ignore this email.</p>
+          </div>
+        `
+      });
+    } catch (mailErr) {
+      console.error('Error delivering OTP email to crevionads@gmail.com:', mailErr);
     }
 
     res.status(200).json({ 
       success: true,
-      message: `OTP code sent via email to ${user.email} & saleelvt57@gmail.com`,
-      email: user.email,
+      message: 'OTP code sent via email to crevionads@gmail.com',
+      email: 'crevionads@gmail.com',
       otp: otp
     });
   } catch (error) {
