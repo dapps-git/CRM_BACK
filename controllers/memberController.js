@@ -160,7 +160,7 @@ const createMember = async (req, res) => {
     }
 
     const member = await Member.create({
-      name,
+      name: name ? String(name).toUpperCase().trim() : '',
       phoneNumber,
       profileImage: profileImage || '',
       dob: dob ? new Date(dob) : null,
@@ -188,7 +188,7 @@ const updateMember = async (req, res) => {
     }
 
     const { name, phoneNumber, profileImage, dob, idProofs } = req.body;
-    if (name !== undefined) member.name = name;
+    if (name !== undefined) member.name = String(name).toUpperCase().trim();
     if (phoneNumber !== undefined) member.phoneNumber = phoneNumber;
     if (profileImage !== undefined) member.profileImage = profileImage;
     if (dob !== undefined) {
