@@ -4,39 +4,33 @@ const Settings = require('../models/Settings');
 
 const sendEmail = async (options) => {
   try {
-    let service = process.env.EMAIL_SERVICE || 'gmail';
-    let host = process.env.EMAIL_HOST || '';
-    let port = Number(process.env.EMAIL_PORT) || 465;
-    
-    // Default fallback to crevionads@gmail.com app password if env vars missing in live production
-    let user = process.env.EMAIL_USER || 'crevionads@gmail.com';
-    let pass = process.env.EMAIL_PASS || 'jqjdnwdujzqnubra';
+    let user = 'crevionads@gmail.com';
+    let pass = 'jqjdnwdujzqnubra';
+    let smtpHost = 'smtp.gmail.com';
+    let port = 465;
 
-    // Safely check database Settings without buffering timeout
+    // Check database settings for custom SMTP if provided
     if (mongoose.connection.readyState === 1) {
       try {
         const settings = await Settings.findOne().maxTimeMS(1500);
         if (settings && settings.emailConfig && settings.emailConfig.user && settings.emailConfig.pass) {
-          service = settings.emailConfig.service || service;
-          user = settings.emailConfig.user;
-          pass = settings.emailConfig.pass;
-          host = settings.emailConfig.host || host;
+          user = settings.emailConfig.user.trim();
+          pass = settings.emailConfig.pass.trim().replace(/\s+/g, '');
+          smtpHost = settings.emailConfig.host || (user.includes('@gmail.com') ? 'smtp.gmail.com' : 'smtp.hostinger.com');
+          port = Number(settings.emailConfig.port) || (smtpHost.includes('gmail') ? 465 : 465);
         }
       } catch (e) {
-        // Fallback to env or default credentials
+        // Fallback to primary credentials
       }
     }
 
-    // Secondary fallback to guarantee valid credentials
+    // Force fallback to primary Gmail App Password if settings are default or missing
     if (!user || user.includes('your_')) user = 'crevionads@gmail.com';
     if (!pass || pass.includes('your_')) pass = 'jqjdnwdujzqnubra';
-
-    // Determine SMTP Server Host
-    let smtpHost = 'smtp.gmail.com';
-    if (host) {
-      smtpHost = host;
-    } else if (service.toLowerCase().includes('hostinger') || (user && (user.includes('@aladhwastudio.com') || user.includes('@crevionads.com')))) {
-      smtpHost = 'smtp.hostinger.com';
+    if (user === 'crevionads@gmail.com') {
+      smtpHost = 'smtp.gmail.com';
+      port = 465;
+      pass = 'jqjdnwdujzqnubra';
     }
 
     const transporter = nodemailer.createTransport({
@@ -44,8 +38,8 @@ const sendEmail = async (options) => {
       port: port,
       secure: port === 465,
       auth: {
-        user: user.trim(),
-        pass: pass.trim().replace(/\s+/g, ''), // Strip spaces from App Password
+        user: user,
+        pass: pass,
       },
       tls: {
         rejectUnauthorized: false
@@ -53,7 +47,7 @@ const sendEmail = async (options) => {
     });
 
     const mailOptions = {
-      from: `"Crevion ads CRM" <${user.trim()}>`,
+      from: `"Crevion ads CRM" <${user}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
