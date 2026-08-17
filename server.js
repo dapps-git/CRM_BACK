@@ -67,8 +67,7 @@ const checkExpiringDomainsJob = async () => {
 
         // If alert was not sent in last 7 days
         if (daysSinceAlert >= 7) {
-          const defaultEmails = ['crevionads@gmail.com', 'saleelvt57@gmail.com'];
-          const recipients = [domain.ownerEmail, ...defaultEmails].filter(Boolean).join(',');
+          const recipients = ['crevionads@gmail.com', 'saleelvt57@gmail.com'].join(',');
           const expDateStr = formatDate(domain.expirationDate);
           const purchaseDateStr = formatDate(domain.purchaseDate);
 

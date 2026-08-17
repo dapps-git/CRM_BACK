@@ -325,6 +325,28 @@ const resetAdmins = async (req, res) => {
   }
 };
 
+// @desc    Verify current password in real-time
+// @route   POST /api/auth/verify-password
+// @access  Private
+const verifyPassword = async (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(200).json({ valid: false });
+  }
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ valid: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    return res.status(200).json({ valid: isMatch });
+  } catch (error) {
+    return res.status(500).json({ valid: false, message: 'Error verifying password' });
+  }
+};
+
 module.exports = {
   login,
   verifyOTP,
@@ -332,6 +354,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   changePassword,
+  verifyPassword,
   getMe,
   resetAdmins,
 };

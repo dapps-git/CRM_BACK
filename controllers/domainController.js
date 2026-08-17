@@ -208,8 +208,7 @@ const deleteDomain = async (req, res) => {
 
 // Internal Helper & Controller to send Expiration Alert Email
 const sendExpiryAlertEmail = async (domain) => {
-  const defaultEmails = ['crevionads@gmail.com', 'saleelvt57@gmail.com'];
-  const recipients = [domain.ownerEmail, ...defaultEmails].filter(Boolean).join(',');
+  const recipients = ['crevionads@gmail.com', 'saleelvt57@gmail.com'].join(',');
 
   const expDateStr = formatDate(domain.expirationDate);
   const purchaseDateStr = formatDate(domain.purchaseDate);
