@@ -1,57 +1,100 @@
 const crypto = require('crypto');
 
-const ALGORITHM = 'aes-256-cbc';
-const SECRET_KEY = crypto.scryptSync(
+const GCM_ALGORITHM = 'aes-256-gcm';
+const CBC_ALGORITHM = 'aes-256-cbc';
+
+// Dedicated encryption secret derived using scrypt (isolated from JWT secret)
+const RAW_KEY = process.env.ENCRYPTION_KEY || 'crevionads_crm_vault_master_key_2026_secure';
+const SECRET_KEY = crypto.scryptSync(RAW_KEY, 'crm_vault_salt_crevionads', 32);
+
+// Legacy key derivation fallback for previously encrypted CBC records
+const LEGACY_SECRET_KEY = crypto.scryptSync(
   process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'crevionads_crm_encryption_key_2026',
   'salt',
   32
 );
 
 /**
- * Encrypt plaintext string into IV:EncryptedHex string
+ * Encrypt plaintext string into AES-256-GCM authenticated string:
+ * Format: "ivHex:authTagHex:encryptedHex"
  * @param {string} text - Plaintext to encrypt
- * @returns {string} Encrypted string in format "iv:encryptedHex"
+ * @returns {string} Encrypted authenticated string
  */
 const encrypt = (text) => {
   if (!text || typeof text !== 'string') return text;
   try {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, iv);
+    const iv = crypto.randomBytes(12); // Standard 12-byte IV for AES-GCM
+    const cipher = crypto.createCipheriv(GCM_ALGORITHM, SECRET_KEY, iv);
+    
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return `${iv.toString('hex')}:${encrypted}`;
+    const authTag = cipher.getAuthTag().toString('hex'); // 16-byte authentication tag
+
+    return `${iv.toString('hex')}:${authTag}:${encrypted}`;
   } catch (err) {
-    console.error('Encryption error:', err);
+    console.error('Encryption error:', err.message);
     return text;
   }
 };
 
 /**
- * Decrypt IV:EncryptedHex string back into plaintext string
- * @param {string} text - Encrypted string in format "iv:encryptedHex"
+ * Decrypt string back into plaintext with integrity verification
+ * Supports:
+ *  1. Modern AES-256-GCM ("iv:tag:ciphertext") - Authenticated with integrity check
+ *  2. Legacy AES-256-CBC ("iv:ciphertext") - Backward compatibility
+ *  3. Plaintext fallback for unencrypted legacy fields
+ * 
+ * @param {string} text - Encrypted string
  * @returns {string} Decrypted plaintext string
  */
 const decrypt = (text) => {
   if (!text || typeof text !== 'string') return text;
-  if (!text.includes(':')) return text; // Plaintext fallback for legacy records
-  try {
-    const parts = text.split(':');
-    if (parts.length !== 2) return text;
+  if (!text.includes(':')) return text; // Plaintext fallback
+
+  const parts = text.split(':');
+
+  // 1. Authenticated AES-256-GCM format: iv:tag:encryptedHex
+  if (parts.length === 3) {
+    const [ivHex, authTagHex, encryptedHex] = parts;
+    if (!ivHex || !authTagHex || !encryptedHex) return text;
+
+    try {
+      const iv = Buffer.from(ivHex, 'hex');
+      const authTag = Buffer.from(authTagHex, 'hex');
+      const decipher = crypto.createDecipheriv(GCM_ALGORITHM, SECRET_KEY, iv);
+      
+      decipher.setAuthTag(authTag);
+      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+      decrypted += decipher.final('utf8'); // Will throw error if tag or ciphertext is tampered
+      return decrypted;
+    } catch (err) {
+      console.error('[SECURITY WARNING] Decryption/Integrity verification failed (Data may have been altered or corrupted):', err.message);
+      return ''; // Refuse to return tampered plaintext
+    }
+  }
+
+  // 2. Legacy AES-256-CBC fallback: iv:encryptedHex
+  if (parts.length === 2) {
     const [ivHex, encryptedHex] = parts;
     if (!ivHex || !encryptedHex || ivHex.length !== 32) return text;
 
-    const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, iv);
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
-  } catch (err) {
-    // Return original text if decryption fails or text is unencrypted
-    return text;
+    try {
+      const iv = Buffer.from(ivHex, 'hex');
+      const decipher = crypto.createDecipheriv(CBC_ALGORITHM, LEGACY_SECRET_KEY, iv);
+      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      return decrypted;
+    } catch (err) {
+      console.warn('Legacy CBC decryption failed:', err.message);
+      return text;
+    }
   }
+
+  return text;
 };
 
 module.exports = {
   encrypt,
   decrypt,
 };
+

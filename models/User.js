@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
   mobileNumber: {
     type: String,
     trim: true,
-    default: '9745307450',
+    default: '9947400278',
   },
   otp: {
     type: String,

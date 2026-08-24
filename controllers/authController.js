@@ -3,21 +3,17 @@ const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const ENCRYPTED_JWT_SECRET = require('../config/jwtConfig');
 
-// Helper to generate a 6-digit OTP
+
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Helper to sign JWT using SHA-256 encrypted secret key
 const signToken = (id) => {
   return jwt.sign({ id }, ENCRYPTED_JWT_SECRET, {
     expiresIn: process.env.SESSION_EXPIRY || '365d',
   });
 };
 
-// @desc    Check login credentials and issue JWT directly
-// @route   POST /api/auth/login
-// @access  Public
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -53,9 +49,7 @@ const login = async (req, res) => {
   }
 };
 
-// @desc    Step 2: Verify OTP and issue JWT
-// @route   POST /api/auth/verify-otp
-// @access  Public
+
 const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -95,9 +89,7 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-// @desc    Resend login OTP
-// @route   POST /api/auth/resend-otp
-// @access  Public
+
 const resendOTP = async (req, res) => {
   const { email } = req.body;
 
@@ -138,9 +130,7 @@ const resendOTP = async (req, res) => {
   }
 };
 
-// @desc    Request forgot password OTP via Nodemailer
-// @route   POST /api/auth/forgot-password
-// @access  Public
+
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -152,7 +142,6 @@ const forgotPassword = async (req, res) => {
       user = await User.findOne({ email: cleanEmail });
     }
 
-    // Fallback to primary admin account
     if (!user) {
       user = await User.findOne();
     }
@@ -163,18 +152,18 @@ const forgotPassword = async (req, res) => {
 
     const otp = generateOTP();
     user.otp = otp;
-    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes valid
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
     console.log(`----------------------------------------------------`);
     console.log(`[NODEMAILER RESET OTP] Target: ${user.email} | OTP: ${otp}`);
     console.log(`----------------------------------------------------`);
 
-    // Send OTP email ONLY to crevionads@gmail.com
+
     try {
       await sendEmail({
         to: 'crevionads@gmail.com',
-        subject: '🔑 Password Reset Verification Code',
+        subject: ' Password Reset Verification Code',
         text: `Your password reset verification code is: ${otp}. It is valid for 10 minutes.`,
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 32px 16px;">
@@ -212,7 +201,7 @@ const forgotPassword = async (req, res) => {
       console.error('Error delivering OTP email to crevionads@gmail.com:', mailErr);
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
       message: 'Verification OTP sent to crevionads@gmail.com. Please check your email inbox.',
       email: 'crevionads@gmail.com'
@@ -223,9 +212,7 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// @desc    Verify forgot password OTP & set new password
-// @route   POST /api/auth/reset-password
-// @access  Public
+
 const resetPassword = async (req, res) => {
   const { email, mobileNumber, otp, newPassword } = req.body;
 
@@ -259,13 +246,12 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired OTP code. Please request a new OTP.' });
     }
 
-    // Set new password (will be hashed automatically by pre-save hook)
     user.password = cleanPassword;
     user.otp = null;
     user.otpExpires = null;
     await user.save();
 
-    console.log(`✅ Password successfully updated for admin account: ${user.email}. Old password no longer works.`);
+    console.log(` Password successfully updated for admin account: ${user.email}. Old password no longer works.`);
 
     res.status(200).json({
       success: true,
@@ -277,9 +263,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// @desc    Change password (authenticated)
-// @route   POST /api/auth/change-password
-// @access  Private
+
 const changePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
@@ -304,9 +288,7 @@ const changePassword = async (req, res) => {
   }
 };
 
-// @desc    Get current user profile details
-// @route   GET /api/auth/me
-// @access  Private
+
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -318,9 +300,7 @@ const getMe = async (req, res) => {
 
 const bcrypt = require('bcryptjs');
 
-// @desc    Force reset admin default user in database
-// @route   GET /api/auth/reset-admins
-// @access  Public
+
 const resetAdmins = async (req, res) => {
   try {
     // Delete any legacy creweanads account
@@ -331,14 +311,14 @@ const resetAdmins = async (req, res) => {
     await User.create({
       email: primaryAdmin.email.toLowerCase(),
       password: primaryAdmin.password,
-      mobileNumber: '9745307450',
+      mobileNumber: '9947400278',
       isVerified: true
     });
 
-    res.status(200).json({ 
-      status: 'success', 
+    res.status(200).json({
+      status: 'success',
       message: 'Admin account reset successfully! You can now log in with crevionads@gmail.com.',
-      credentials: [primaryAdmin] 
+      credentials: [primaryAdmin]
     });
   } catch (error) {
     console.error(error);
