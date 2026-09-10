@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const ENCRYPTED_JWT_SECRET = require('../config/jwtConfig');
 
 const protect = async (req, res, next) => {
   let token;
@@ -25,7 +26,7 @@ const protect = async (req, res, next) => {
     } catch (e) {}
   }
 
-  // 4. Check headers fallback (supports Apache HTTP_AUTHORIZATION and x-auth-token)
+  // 4. Check headers (supports Bearer, Apache HTTP_AUTHORIZATION, and custom headers)
   if (!token) {
     const authHeader = req.headers.authorization || 
                        req.headers.Authorization || 
@@ -50,35 +51,24 @@ const protect = async (req, res, next) => {
     token = req.body.token;
   }
 
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, ENCRYPTED_JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-      if (!req.user) {
-        req.user = await User.findOne();
-      }
-      if (req.user) {
-        return next();
-      }
+  if (!token) {
+    return res.status(401).json({ message: 'Not authorized, no token provided', code: 'NO_TOKEN' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, ENCRYPTED_JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
       return res.status(401).json({ message: 'Not authorized, user not found', code: 'USER_NOT_FOUND' });
-    } catch (error) {
-      const fallbackUser = await User.findOne();
-      if (fallbackUser) {
-        req.user = fallbackUser;
-        return next();
-      }
-      return res.status(401).json({ message: 'Not authorized', code: 'UNAUTHORIZED' });
     }
-  }
-
-  // Final fallback to primary user if present
-  const defaultUser = await User.findOne();
-  if (defaultUser) {
-    req.user = defaultUser;
+    req.user = user;
     return next();
+  } catch (error) {
+    return res.status(401).json({ 
+      message: error.name === 'TokenExpiredError' ? 'Session expired, please login again' : 'Not authorized, token invalid', 
+      code: error.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'UNAUTHORIZED' 
+    });
   }
-
-  return res.status(401).json({ message: 'Not authorized', code: 'NO_TOKEN' });
 };
 
 module.exports = { protect };
