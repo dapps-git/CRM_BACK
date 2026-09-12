@@ -22,7 +22,7 @@ const seedAdminUsers = async () => {
       await User.create({
         email: primaryAdmin.email.toLowerCase(),
         password: primaryAdmin.password,
-        mobileNumber: '9745307450',
+        mobileNumber: '9947400278',
         isVerified: true
       });
       console.log(`✅ Admin user seeded & verified: ${primaryAdmin.email}`);
@@ -171,7 +171,7 @@ connectDB().then(() => {
 
 // Universal CORS Middleware with preflight handling
 app.use((req, res, next) => {
-  const origin = req.headers.origin || '*';
+  const origin = req.headers.origin;
   res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, authorization, x-auth-token, X-Auth-Token, *');
