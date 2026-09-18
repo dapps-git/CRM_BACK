@@ -3,16 +3,14 @@ const crypto = require('crypto');
 const GCM_ALGORITHM = 'aes-256-gcm';
 const CBC_ALGORITHM = 'aes-256-cbc';
 
-// Dedicated encryption secret derived using scrypt (isolated from JWT secret)
-const RAW_KEY = process.env.ENCRYPTION_KEY || 'crevionads_crm_vault_master_key_2026_secure';
-const SECRET_KEY = crypto.scryptSync(RAW_KEY, 'crm_vault_salt_crevionads', 32);
+if (!process.env.ENCRYPTION_KEY) {
+  console.error('FATAL ERROR: ENCRYPTION_KEY must be defined in environment variables.');
+  process.exit(1);
+}
 
-// Legacy key derivation fallback for previously encrypted CBC records
-const LEGACY_SECRET_KEY = crypto.scryptSync(
-  process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'crevionads_crm_encryption_key_2026',
-  'salt',
-  32
-);
+const RAW_KEY = process.env.ENCRYPTION_KEY;
+const SECRET_KEY = crypto.scryptSync(RAW_KEY, 'crm_vault_salt_crevionads', 32);
+const LEGACY_SECRET_KEY = crypto.scryptSync(RAW_KEY, 'salt', 32);
 
 /**
  * Encrypt plaintext string into AES-256-GCM authenticated string:

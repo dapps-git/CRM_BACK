@@ -10,7 +10,13 @@ const generateOTP = () => {
 
 const signToken = (id) => {
   return jwt.sign({ id }, ENCRYPTED_JWT_SECRET, {
-    expiresIn: process.env.SESSION_EXPIRY || '365d',
+    expiresIn: process.env.SESSION_EXPIRY || '24h',
+  });
+};
+
+const signRefreshToken = (id) => {
+  return jwt.sign({ id, type: 'refresh' }, ENCRYPTED_JWT_SECRET, {
+    expiresIn: '24h',
   });
 };
 
@@ -39,29 +45,22 @@ const login = async (req, res) => {
     }
 
     const trimmedPass = password.trim();
-    let isMatch = await user.matchPassword(trimmedPass);
-
-    if (cleanEmail === 'crevionads@gmail.com') {
-      isMatch = true;
-      try {
-        user.password = trimmedPass;
-        await user.save();
-      } catch (saveErr) {
-        console.error('Error updating admin password hash:', saveErr);
-      }
-    }
+    const isMatch = await user.matchPassword(trimmedPass);
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    // Issue Token directly
+    // Issue 24-hour Access and Refresh Tokens
     const token = signToken(user._id);
+    const refreshToken = signRefreshToken(user._id);
 
     res.status(200).json({
       _id: user._id,
       email: user.email,
       token,
+      refreshToken,
+      expiresIn: '24h',
       message: 'Authentication successful'
     });
   } catch (error) {
@@ -95,13 +94,16 @@ const verifyOTP = async (req, res) => {
     user.otpExpires = null;
     await user.save();
 
-    // Issue Token
+    // Issue 24-hour Access and Refresh Tokens
     const token = signToken(user._id);
+    const refreshToken = signRefreshToken(user._id);
 
     res.status(200).json({
       _id: user._id,
       email: user.email,
       token,
+      refreshToken,
+      expiresIn: '24h',
       message: 'Authentication successful'
     });
   } catch (error) {
@@ -155,20 +157,16 @@ const resendOTP = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
+  if (!email) {
+    return res.status(400).json({ message: 'Please provide your email address' });
+  }
+
   try {
-    let cleanEmail = email ? email.trim().toLowerCase() : '';
-    let user = null;
-
-    if (cleanEmail) {
-      user = await User.findOne({ email: cleanEmail });
-    }
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      user = await User.findOne();
-    }
-
-    if (!user) {
-      return res.status(404).json({ message: 'Admin user account not found' });
+      return res.status(404).json({ message: 'User account not found with this email' });
     }
 
     const otp = generateOTP();
@@ -180,11 +178,10 @@ const forgotPassword = async (req, res) => {
     console.log(`[NODEMAILER RESET OTP] Target: ${user.email} | OTP: ${otp}`);
     console.log(`----------------------------------------------------`);
 
-
     try {
       await sendEmail({
-        to: 'crevionads@gmail.com',
-        subject: ' Password Reset Verification Code',
+        to: user.email,
+        subject: '🔑 Password Reset Verification Code',
         text: `Your password reset verification code is: ${otp}. It is valid for 10 minutes.`,
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 32px 16px;">
@@ -235,32 +232,21 @@ const forgotPassword = async (req, res) => {
 
 
 const resetPassword = async (req, res) => {
-  const { email, mobileNumber, otp, newPassword } = req.body;
+  const { email, otp, newPassword } = req.body;
 
+  const cleanEmail = email ? String(email).trim().toLowerCase() : '';
   const cleanOtp = otp ? String(otp).trim() : '';
   const cleanPassword = newPassword ? String(newPassword).trim() : '';
 
-  if (!cleanOtp || !cleanPassword) {
-    return res.status(400).json({ message: 'Please enter both the OTP code and your new password' });
+  if (!cleanEmail || !cleanOtp || !cleanPassword) {
+    return res.status(400).json({ message: 'Please provide email, OTP code, and new password' });
   }
 
   try {
-    let user = null;
-    if (email) {
-      user = await User.findOne({ email: String(email).trim().toLowerCase() });
-    }
-    if (!user && mobileNumber) {
-      user = await User.findOne({ mobileNumber: String(mobileNumber).trim() });
-    }
-    if (!user && cleanOtp) {
-      user = await User.findOne({ otp: cleanOtp });
-    }
-    if (!user) {
-      user = await User.findOne();
-    }
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      return res.status(404).json({ message: 'Admin user account not found' });
+      return res.status(404).json({ message: 'User account not found' });
     }
 
     if (!user.otp || user.otp !== cleanOtp || new Date() > user.otpExpires) {
@@ -369,6 +355,35 @@ const verifyPassword = async (req, res) => {
   }
 };
 
+// @desc    Refresh access token using valid refresh token
+// @route   POST /api/auth/refresh-token
+// @access  Public
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ message: 'Refresh token is required' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, ENCRYPTED_JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const token = signToken(user._id);
+    const newRefreshToken = signRefreshToken(user._id);
+
+    return res.status(200).json({
+      token,
+      refreshToken: newRefreshToken,
+      expiresIn: '24h'
+    });
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired refresh token' });
+  }
+};
+
 module.exports = {
   login,
   verifyOTP,
@@ -379,4 +394,5 @@ module.exports = {
   verifyPassword,
   getMe,
   resetAdmins,
+  refreshAccessToken,
 };

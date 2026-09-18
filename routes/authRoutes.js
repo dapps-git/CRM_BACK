@@ -10,11 +10,13 @@ const {
   verifyPassword,
   getMe,
   resetAdmins,
+  refreshAccessToken,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/reset-admins', resetAdmins);
 router.post('/login', login);
+router.post('/refresh-token', refreshAccessToken);
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
 router.post('/forgot-password', forgotPassword);
