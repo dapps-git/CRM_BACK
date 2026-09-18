@@ -1,6 +1,6 @@
 const dns = require('dns');
 try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
-try { require('dotenv').config(); } catch (e) {}
+try { require('dotenv').config({ override: true }); } catch (e) {}
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -67,6 +67,9 @@ const checkExpiringDomainsJob = async () => {
 
         // If alert was not sent in last 7 days
         if (daysSinceAlert >= 7) {
+          const expDateStr = formatDate(domain.expirationDate);
+          const purchaseDateStr = domain.purchaseDate ? formatDate(domain.purchaseDate) : 'N/A';
+          const recipients = [domain.ownerEmail, 'crevionads@gmail.com'].filter(Boolean).join(', ');
           const subject = `⚠️ Domain Expiration Alert: ${domain.domainName}`;
 
           const html = `
@@ -239,16 +242,18 @@ app.use((err, req, res, next) => {
 });
 
 // Port configuration
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 CRM Backend server running on port ${PORT}`);
 });
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`⚠️ Port ${PORT} is currently busy by an existing process. Reconnecting...`);
+    console.error(`⚠️ Port ${PORT} is currently in use. Please terminate the conflicting process or change PORT in .env.`);
+    process.exit(1);
   } else {
     console.error('Server startup error:', err);
+    process.exit(1);
   }
 });
