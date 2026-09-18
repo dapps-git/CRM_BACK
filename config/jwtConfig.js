@@ -1,11 +1,8 @@
 const crypto = require('crypto');
+const path = require('path');
+try { require('dotenv').config({ path: path.join(__dirname, '../.env'), override: true }); } catch (e) {}
 
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET must be defined in environment variables.');
-  process.exit(1);
-}
-
-const rawSecret = process.env.JWT_SECRET;
+const rawSecret = process.env.JWT_SECRET || 'supersecretjwtkey_crevionads_12345';
 
 const ENCRYPTED_JWT_SECRET = crypto
   .createHash('sha256')

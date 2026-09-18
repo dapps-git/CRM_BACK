@@ -6,10 +6,11 @@ PassengerNodejs /home/tweaxzow/nodevenv/repositories/CRM_BACK/22/bin/node
 PassengerAppRoot /home/tweaxzow/repositories/CRM_BACK
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
-# Allow All CORS Headers at LiteSpeed Web Server Level
+# Allow CORS Headers at LiteSpeed Web Server Level
 <IfModule mod_headers.c>
-    Header always set Access-Control-Allow-Origin "*"
+    SetEnvIf Origin "^(https?://.+)$" CORS_ORIGIN=$1
+    Header always set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    Header always set Access-Control-Allow-Headers "authorization, Authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token, x-auth-token, X-Auth-Token, *"
+    Header always set Access-Control-Allow-Headers "Authorization, authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token, x-auth-token, X-Auth-Token, x-access-token, *"
     Header always set Access-Control-Allow-Credentials "true"
 </IfModule>

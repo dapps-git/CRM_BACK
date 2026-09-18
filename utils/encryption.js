@@ -1,14 +1,11 @@
 const crypto = require('crypto');
+const path = require('path');
+try { require('dotenv').config({ path: path.join(__dirname, '../.env'), override: true }); } catch (e) {}
 
 const GCM_ALGORITHM = 'aes-256-gcm';
 const CBC_ALGORITHM = 'aes-256-cbc';
 
-if (!process.env.ENCRYPTION_KEY) {
-  console.error('FATAL ERROR: ENCRYPTION_KEY must be defined in environment variables.');
-  process.exit(1);
-}
-
-const RAW_KEY = process.env.ENCRYPTION_KEY;
+const RAW_KEY = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'c7a3f9e2b1048d65e93f87c14a2b904d6f8302194c7b2e1a90847d3e210fa65c';
 const SECRET_KEY = crypto.scryptSync(RAW_KEY, 'crm_vault_salt_crevionads', 32);
 const LEGACY_SECRET_KEY = crypto.scryptSync(RAW_KEY, 'salt', 32);
 

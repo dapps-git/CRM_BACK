@@ -173,20 +173,29 @@ connectDB().then(() => {
 }).catch(() => {});
 
 // Universal CORS Middleware with preflight handling
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, authorization, x-auth-token, X-Auth-Token, *');
-  res.header('Access-Control-Allow-Credentials', 'true');
+const corsOptions = {
+  origin: (origin, callback) => {
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'authorization',
+    'x-auth-token',
+    'X-Auth-Token',
+    'x-access-token',
+    '*'
+  ],
+  optionsSuccessStatus: 200
+};
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).send('OK');
-  }
-  next();
-});
-
-app.use(cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
