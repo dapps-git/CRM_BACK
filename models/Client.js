@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-const BusinessSchema = new mongoose.Schema({
-  businessName: {
+const ClientSchema = new mongoose.Schema({
+  clientName: {
     type: String,
     required: true,
     trim: true,
@@ -60,4 +60,4 @@ const BusinessSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-module.exports = mongoose.model('Business', BusinessSchema);
+module.exports = mongoose.model('Client', ClientSchema);

@@ -206,6 +206,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Import Routers
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
+const clientRoutes = require('./routes/clientRoutes');
 const incomeRoutes = require('./routes/incomeRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const memberRoutes = require('./routes/memberRoutes');
@@ -220,6 +221,7 @@ const serverRoutes = require('./routes/serverRoutes');
 // Mount Routers for all possible cPanel / local subpaths
 app.use(['/crm/api/auth', '/crm/auth', '/api/auth', '/auth'], authRoutes);
 app.use(['/crm/api/business', '/crm/business', '/api/business', '/business'], businessRoutes);
+app.use(['/crm/api/client', '/crm/client', '/api/client', '/client'], clientRoutes);
 app.use(['/crm/api/income', '/crm/income', '/api/income', '/income'], incomeRoutes);
 app.use(['/crm/api/expense', '/crm/expense', '/api/expense', '/expense'], expenseRoutes);
 app.use(['/crm/api/member', '/crm/member', '/api/member', '/member'], memberRoutes);
