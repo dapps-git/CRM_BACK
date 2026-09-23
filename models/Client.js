@@ -45,6 +45,8 @@ const ClientSchema = new mongoose.Schema({
       'GMB creation',
       'GMB number adding',
       'NFC',
+      'Meta Ads',
+      'Google Ads',
       'Other'
     ],
   },
